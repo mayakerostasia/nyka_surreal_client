@@ -9,24 +9,6 @@ pub struct DbConfig {
     pub secret: String,
 }
 
-impl DbConfig {
-    pub fn new(
-        surreal_path: String,
-        namespace: String,
-        database: String,
-        user: String,
-        secret: String,
-    ) -> Self {
-        Self {
-            surreal_path,
-            namespace,
-            database,
-            user,
-            secret,
-        }
-    }
-}
-
 pub fn setup() -> DbConfig {
     DbConfig {
         surreal_path: env::var("DB_PATH").expect("DB_PATH must be set"),
