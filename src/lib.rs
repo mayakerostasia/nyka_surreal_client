@@ -43,9 +43,9 @@ pub struct Ident {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum Record<T> {
-    Data(T),
+    RecordIdData { id: Ident, data: T},
     Records(Vec<T>),
-    RecordIdData { id: Ident, data: surrealdb::sql::Value },
+    Data(T),
     RecordId(Ident),
 }
 
