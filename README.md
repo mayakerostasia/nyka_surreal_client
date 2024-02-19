@@ -5,7 +5,7 @@
 - DB_USER
 - DB_SECRET
 
-DB_PATH is the path to the database. It can be a file path or a URL.  
+DB_PATH is the path to the database. It can be a file path or a URL. 
     *note* : If using file path... prepend the path with some file descriptor like, but perhaps not exactly, `file://`  [More Info](https://docs.rs/surrealdb/latest/surrealdb/engine/any/index.html)  
 DB_NS is the namespace of the database.  
 DB_DB is the name of the database.  
