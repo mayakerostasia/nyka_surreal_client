@@ -2,31 +2,37 @@ mod config;
 mod error;
 
 use error::Error;
+use surrealdb::method::Select;
+use surrealdb::opt::Resource;
 
 use core::fmt::Debug;
+use std::collections::BTreeMap;
+use std::future::IntoFuture;
 use once_cell::sync::Lazy;
 
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 
 use surrealdb::engine::any::Any;
-use surrealdb::sql::{Table, Thing};
+use surrealdb::sql::{Object, Table, Thing};
 use surrealdb::Surreal;
 
 static DB: Lazy<Surreal<Any>> = Lazy::new(Surreal::init);
 static CONFIG: Lazy<config::DbConfig> = Lazy::new(config::setup);
+
+// use serde_json::Value;
 
 type DBResult<T> = Result<T, Error>;
 
 pub mod prelude {
     pub use super::connect;
     pub use super::create_record;
-    pub use super::create_record_data;
-    pub use super::create_table;
-    pub use super::get_record;
+    // pub use super::create_record_data;
+    // pub use super::create_table;
     pub use super::delete_record;
-    pub use super::Record;
     pub use super::error::Error;
+    pub use super::get_record;
+    pub use super::Record;
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -37,51 +43,61 @@ pub struct Ident {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum Record<T> {
-    RecordId(Ident),
     Data(T),
-    RecordIdData { id: Ident, value: T },
+    Records(Vec<T>),
+    RecordIdData { id: Ident, data: surrealdb::sql::Value },
+    RecordId(Ident),
 }
 
-pub async fn create_table(name: &str) -> DBResult<Vec<Record<Table>>>
-// where T: DeserializeOwned + Debug
-{
-    Ok(DB.create(name).await?)
-}
-
-pub async fn create_record<T>(resource: Thing, data: Option<T>) -> Result<Option<Record<T>>, Error>
-where
-    T: Serialize + Debug,
-    T: DeserializeOwned + Debug,
-{
-    let mut creatable: Record<T>;
-    if let Some(data) = data {
-        creatable = Record::RecordIdData {
-            id: Ident {
-                id: resource.clone(),
+impl<T> Into<Record<T>> for Resource {
+    fn into(self) -> Record<T> {
+        match self {
+            Resource::Object(object) => Record::RecordIdData{ 
+                id : Ident { id: Thing::from((
+                    object.0.get("id").unwrap().to_string(), 
+                    object.0.get("tb").unwrap().to_string()
+                ))},
+                data: object.0.clone().into()
             },
-            value: data,
-        };
-    } else {
-        creatable = Record::RecordId(Ident {
-            id: resource.clone(),
-        });
-        // Ok(created)
-    };
-    let created: Option<Record<T>> = DB.create(resource).content(creatable).await?;
-    // todo!();
-    Ok(created)
+            _ => unimplemented!()
+        }
+    }
 }
 
-pub async fn create_record_data<T>(resource: Thing, data: T) -> Result<Option<Record<T>>, Error>
+
+// pub async fn create_table(name: &str) -> DBResult<Vec<Record<Table>>>
+// // where T: DeserializeOwned + Debug
+// {
+//     Ok(DB.create(Table(name.to_string())).await?)
+// }
+
+pub async fn create_record<T>(table: &str, id: &str, data: Option<T>) -> Result<Option<Record<T>>, Error>
 where
     T: Serialize + Debug,
     T: DeserializeOwned + Debug,
 {
-    let created: Option<Record<T>> = DB.create(resource).content(data).await?;
+    println!("Creating record: {} {} \n Data: {:#?}", table, id, data);
+    let created: Option<Record<T>>;
+    if let Some(data) = data {
+        println!("Creating record with data: {:#?}", data);
+        created = DB.create((table, id)).content(data).await?;
+        println!("{:?}", &created.as_ref().unwrap());
+    } else {
+        created = DB.create((table, id)).await?;
+    }
     Ok(created)
 }
 
-pub async fn get_record<T>(table: &str, id: &str) -> Result<Vec<Record<T>>, Error>
+// pub async fn create_record_data<T>(resource: Thing, data: T) -> Result<Option<Record<T>>, Error>
+// where
+//     T: Serialize + Debug,
+//     T: DeserializeOwned + Debug,
+// {
+//     let created: Option<Record<T>> = DB.create(resource).content(data).await?;
+//     Ok(created)
+// }
+
+pub async fn get_record<'a, T>(table: &str, id: &str) -> Result<Option<T>, Error>
 where
     T: DeserializeOwned + Debug,
 {
@@ -89,31 +105,20 @@ where
     let this_thing = Ident {
         id: Thing::from((table, id)),
     };
-    let value: Option<Record<T>> = DB.select(&this_thing.id).await?;
-    match value {
-        Some(Record::RecordIdData { id, value }) => {
-            println!("Got record: {:?}", value);
-            Ok(vec![Record::RecordIdData { id, value }])
-        }
-        Some(Record::Data(value)) => {
-            println!("Got record: {:?}", value);
-            Ok(vec![Record::Data(value)])
-        }
-        Some(Record::RecordId(id)) => {
-            println!("Got record: {:?}", id);
-            Ok(vec![Record::RecordId(id)])
-        }
-        None => {
-            println!("No record found");
-            Err(Error::NoRecordFound {
-                namespace: CONFIG.namespace.clone(),
-                database: CONFIG.database.clone(),
-                table: table.to_string(),
-                id: id.to_string(),
-            })
-        }
-    }
-    // Ok(vec![value.unwrap()])
+    let value: Option<T> = DB.select((&this_thing.id.tb, &this_thing.id.id.to_raw()))
+        .into_future()
+        .await
+        .map_err(|e| 
+            Error::NoRecordFound { 
+                namespace: CONFIG.ns.to_string(), 
+                database: CONFIG.db.to_string(), 
+                table: table.to_string(), 
+                id: id.to_string() ,
+                // msg: e
+        })?;
+    println!("Got record: {:?}", &value);
+
+    Ok(value.into())
 }
 
 pub async fn delete_record<T>(table: &str, id: &str) -> Result<Record<T>, Error>
@@ -126,10 +131,11 @@ where
         return Ok(Record::Data(deleted));
     } else {
         return Err(Error::NoRecordFound {
-            namespace: CONFIG.namespace.clone(),
-            database: CONFIG.database.clone(),
+            namespace: CONFIG.ns.clone(),
+            database: CONFIG.db.clone(),
             table: table.to_string(),
             id: id.to_string(),
+            // msg: Err(surrealdb::err::Error::NoRecordFound).expect_err(msg),
         });
     }
 }
@@ -141,50 +147,14 @@ pub async fn connect(address: Option<&str>) -> Result<(), Error> {
         Err(_) => {
             let addr = match address {
                 Some(addr) => addr,
-                None => &CONFIG.surreal_path,
+                None => &CONFIG.path,
             };
-            let _ = DB.connect(addr).await?;
-            let _ = DB
-                .use_ns(&CONFIG.namespace)
-                .use_db(&CONFIG.database)
+            let _connect = DB.connect(addr).await?;
+            let _db_ns = DB
+                .use_ns(&CONFIG.ns)
+                .use_db(&CONFIG.db)
                 .await?;
         }
     };
     Ok(())
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use surrealdb::sql::json;
-
-    // #[tokio::test]
-    // async fn test_create_table() -> Result<(), Error> {
-    //     connect(None).await?;
-    //     let table = "test_table";
-    //     let created = create_table(table).await?;
-    //     Ok(())
-    // }
-
-    // #[tokio::test]
-    // async fn test_create_record() -> Result<(), Error> {
-    //     connect(None).await?;
-    //     let table = "test_table";
-    //     let id = "test_id";
-    //     let data = json(r#"{"data": "test"}"#).unwrap();
-    //     let _created = create_record(Thing::from((table, id)), Some(data)).await?;
-    //     let _deleted = delete_record(table, id).await?;
-    //     Ok(())
-    // }
-
-    // #[tokio::test]
-    // async fn test_get_record() -> Result<(), Error> {
-    //     connect(None).await?;
-    //     let table = "test_table";
-    //     let id = "test_id";
-    //     let record = get_record(table, id).await?;
-
-    //     assert_eq!(record.unwrap().len(), 1);
-    //     Ok(())
-    // }
 }
