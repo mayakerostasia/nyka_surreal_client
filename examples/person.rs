@@ -7,7 +7,7 @@ const TEST_PERSON: &str = "test_person";
 // Definition
 #[derive(Debug, Deserialize, Serialize, Clone)]
 struct Person<'a> {
-    #[serde(skip_serializing, skip_deserializing)]
+    #[serde(skip)]
     id: (&'a str, &'a str),
     name: String,
     age: u8,
