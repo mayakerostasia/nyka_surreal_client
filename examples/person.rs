@@ -6,26 +6,29 @@ const TEST_PERSON: &str = "test_person";
 
 // Definition
 #[derive(Debug, Deserialize, Serialize, Clone)]
-struct Person {
+struct Person<'a> {
+    #[serde(skip_serializing, skip_deserializing)]
+    id: (&'a str, &'a str),
     name: String,
     age: u8,
 }
 
-impl<'a> Storable<'a> for Person {
+impl<'a> Storable<'a> for Person<'a> {
     type Item = Self;
 
     fn table(&self) -> &'a str {
-        TEST_TABLE
+        self.id.0
     }
 
     fn id(&self) -> &'a str {
-        TEST_PERSON
+        self.id.1
     }
 }
 
 // API Call or Factory
 fn person_factory(name: &str, age: u8) -> Option<Person> {
     Some(Person {
+        id: (TEST_TABLE, TEST_PERSON),    
         name: name.to_string(),
         age,
     })
