@@ -5,15 +5,16 @@ use surrealdb::sql::Thing;
 const TEST_TABLE: &str = "test_table";
 const TEST_PERSON: &str = "test_person";
 
-fn deserialize_id<'de, D>(deserializer: D) -> Result<Thing, D::Error>
-where
-    D: serde::Deserializer<'de>,
-{
-    let id = String::deserialize(deserializer)?;
-    println!("Deserialized ID: {:?}", id);
-    let id: Thing = id.parse().unwrap();
-    Ok(id)
-}
+// TODO: To de or not to de
+// fn deserialize_id<'de, D>(deserializer: D) -> Result<Thing, D::Error>
+// where
+//     D: serde::Deserializer<'de>,
+// {
+//     let id = String::deserialize(deserializer)?;
+//     println!("Deserialized ID: {:?}", id);
+//     let id: Thing = id.parse().unwrap();
+//     Ok(id)
+// }
 
 // Definition
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -33,8 +34,8 @@ impl<'a> Storable<'a> for Person {
     }
 
     fn id(&self) -> String {
-        // self.id.id.to_raw()
         TEST_PERSON.to_string()
+        // self.id.id.to_raw()
     }
 }
 
@@ -58,10 +59,10 @@ async fn main() -> Result<(), nico_surreal_client::Error> {
 
     // Some Logging
     println!("Created -> Yes");
-    // println!(
-    //     "SavedJohn : ({}:{}) -> {:?}",
-    //     TEST_TABLE, TEST_PERSON, saved_john
-    // );
+    println!(
+        "SavedJohn : ({}:{}) -> {:?}",
+        TEST_TABLE, TEST_PERSON, saved_john
+    );
     println!(
         "SelectedJohn : ({}:{}) -> {:?}",
         TEST_TABLE, TEST_PERSON, selected_john
