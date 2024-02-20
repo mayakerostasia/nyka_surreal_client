@@ -108,7 +108,7 @@ where
         .select((&this_thing.id.tb, &this_thing.id.id.to_raw()))
         .into_future()
         .await
-        .map_err(|e| Error::NoRecordFound {
+        .map_err(|_e| Error::NoRecordFound {
             namespace: CONFIG.ns.to_string(),
             database: CONFIG.db.to_string(),
             table: table.to_string(),
