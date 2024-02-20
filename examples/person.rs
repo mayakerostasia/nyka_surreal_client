@@ -1,10 +1,11 @@
 use nico_surreal_client::Storable;
+use serde::{Deserialize, Serialize};
 
 const TEST_TABLE: &str = "test_table";
 const TEST_PERSON: &str = "test_person";
 
 // Definition
-#[derive(Debug, serde::Deserialize, serde::Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 struct Person {
     name: String,
     age: u8,
