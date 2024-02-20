@@ -18,12 +18,12 @@ struct Person {
 impl<'a> Storable<'a> for Person {
     type Item = Self;
 
-    fn table(&self) -> &'a str {
-        TEST_TABLE
+    fn table(&self) -> String {
+        TEST_TABLE.to_string()
     }
 
-    fn id(&self) -> &'a str {
-        TEST_PERSON
+    fn id(&self) -> String {
+        TEST_PERSON.to_string()
     }
 }
 
