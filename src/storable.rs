@@ -18,19 +18,19 @@ where
     // fn for_db(&self) -> ToValue;
 
     async fn save(self) -> Result<Option<Record<Self>>, Error> {
-        connect(None).await?;
+        let _ = connect(None).await.ok();
         let ret: Result<Option<Record<Self>>, Error> =
-            create_record(self.table().as_str(), self.id().as_str(), Some(self)).await;
+            create_record(self.table().as_str(), Some(self.id().as_str()), Some(self)).await;
         ret
     }
 
     async fn select(&self) -> Result<Option<Self>, Error> {
-        connect(None).await?;
+        let _ = connect(None).await.ok();
         get_record::<Self>(self.table().as_str(), self.id().as_str()).await
     }
 
     async fn delete(self) -> Result<Record<Self>, Error> {
-        connect(None).await?;
+        let _ = connect(None).await.ok();
         delete_record::<Self>(self.table().as_str(), self.id().as_str()).await
     }
 }

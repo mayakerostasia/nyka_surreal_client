@@ -1,0 +1,18 @@
+  [
+    { "Live": "Queries" },
+    {
+      "id": "bxNah",
+      "name": "New Issue",
+      "text": "LIVE SELECT\r\n    *,\r\n    time::from::millis(timestamp)\r\nFROM webhook_events\r\nWHERE\r\n    webhookEvent = \"issue_created\""
+    },
+    {
+      "id": "flqst",
+      "name": "Created Issues",
+      "text": "LIVE SELECT\r\n    # *,\r\n    # changelog,\r\n    issue_event_type_name,\r\n    # changelog.items[*].field,\r\n    # changelog.items[*].fieldId,\r\n    issue.fields.customfield_10150,\r\n    issue.key,\r\n    issue.fields.summary,\r\n    time::from::millis(timestamp)\r\nFROM webhook_event\r\nWHERE issue_event_type_name = \"issue_created\""
+    },
+    {
+      "id": "QbhcJ",
+      "name": "Issue Updated",
+      "text": "LIVE SELECT\r\n    # *,\r\n    # changelog,\r\n    issue_event_type_name,\r\n    # changelog.items[*].field,\r\n    # changelog.items[*].fieldId,\r\n    issue.fields.customfield_10150,\r\n    issue.key,\r\n    issue.fields.summary,\r\n    time::from::millis(timestamp)\r\nFROM webhook_event\r\nWHERE issue_event_type_name = \"issue_updated\"   "
+    }
+  ]

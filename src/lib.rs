@@ -1,10 +1,13 @@
+pub use builder_macro::Builder;
+mod surreal_client;
 mod config;
 mod error;
 mod storable;
+mod ident;
 
 pub use error::Error;
 pub use storable::Storable;
-use surrealdb::sql::Value;
+use surrealdb::sql::{/* Ident */ Value};
 
 use core::fmt::Debug;
 use once_cell::sync::Lazy;
@@ -17,6 +20,12 @@ use serde::{Deserialize, Serialize};
 use surrealdb::engine::any::Any;
 use surrealdb::sql::Thing;
 use surrealdb::Surreal;
+
+// use crate::id::Ident;
+// pub mod ident;
+
+pub use ident::Ident;
+// use surreal_client::*;
 
 static DB: Lazy<Surreal<Any>> = Lazy::new(Surreal::init);
 static CONFIG: Lazy<config::DbConfig> = Lazy::new(config::setup);
@@ -31,20 +40,16 @@ pub mod prelude {
     pub use surrealdb::sql::Thing;
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Ident {
-    pub id: Thing,
-}
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum Record<T> {
-    Record(T),
-    Records(Vec<T>),
     RecordIdDataT {
         id: Ident,
         data: T,
     },
+    Record(T),
+    Records(Vec<T>),
     RecordIdData {
         id: Ident,
         data: BTreeMap<String, Value>,
@@ -61,25 +66,25 @@ impl<T> Record<T> {
     }
 }
 
-pub async fn create_record<T>(
+pub async fn create_record<'a, T>(
     table: &str,
-    id: &str,
+    id: Option<&str>,
     data: Option<T>,
 ) -> Result<Option<Record<T>>, Error>
 where
     T: Serialize + Debug,
     T: DeserializeOwned + Debug,
+    T: Storable<'a>,
 {
     // println!("Creating record: {} {} \n Data: {:#?}", table, id, data);
     let created: Option<Record<T>>;
+    
     if let Some(data) = data {
-        // println!("Creating record with data: {:#?}", data);
-        created = DB.create((table, id)).content(data).await?;
-        // println!("{:?}", &created.as_ref().unwrap());
+        created = DB.create((table, id.unwrap())).content(data).await?;
     } else {
-        created = DB.create((table, id)).await?;
+        created = DB.create((table, id.unwrap())).await?;
     }
-    Ok(created)
+    Ok(created.into())
 }
 
 // pub async fn update_record<T>(table: &str, id: &str, data: Option<T>) -> Result<Option<Record<T>>, Error>
@@ -102,6 +107,7 @@ where
 {
     // println!("Getting record: {} {}", table, id);
     let this_thing = Ident {
+        // id: id.to_string(),
         id: Thing::from((table, id)),
     };
     let value: Option<T> = DB

@@ -1,6 +1,7 @@
-use nico_surreal_client::Storable;
+use nico_surreal_client::{Ident, Storable};
 use serde::{Deserialize, Serialize};
-use surrealdb::sql::Thing;
+use surrealdb::sql::{Id, Thing};
+use builder_macro::Builder;
 
 const TEST_TABLE: &str = "test_table";
 const TEST_PERSON: &str = "test_person";
@@ -17,10 +18,10 @@ const TEST_PERSON: &str = "test_person";
 // }
 
 // Definition
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Builder, Debug, Deserialize, Serialize, Clone)]
 struct Person {
-    // #[serde(skip_serializing, skip_deserializing, default = "RecordId")]
-    // id: Thing,
+    #[serde(skip_serializing)]
+    id: Ident,
     name: String,
     age: u8,
 }
@@ -40,18 +41,19 @@ impl<'a> Storable<'a> for Person {
 }
 
 // API Call or Factory
-fn person_factory(name: &str, age: u8) -> Option<Person> {
-    Some(Person {
-        // id: (TEST_TABLE, TEST_PERSON).into(),    
-        name: name.to_string(),
-        age,
-    })
+fn person_factory(id: Option<Ident>, name: &str, age: u8) -> Option<Person> {
+    Person::builder()
+        .id(id.unwrap())
+        .name(name.to_string())
+        .age(age)
+        .build()
+        .ok()
 }
 
 #[tokio::main]
 async fn main() -> Result<(), nico_surreal_client::Error> {
     // Record To Database
-    let john = person_factory("John", 32).unwrap();
+    let john = person_factory(Some(Ident::from(("test_table", Id::rand()))), "John", 32).unwrap();
     // let deleted_john = john.clone().delete().await?;
     let saved_john = john.clone().save().await?;
     let selected_john = john.clone().select().await?;
