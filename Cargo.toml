@@ -1,13 +1,13 @@
 [package]
 name = "nico_surreal_client"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 include = ["src/**/*", "Cargo.toml", "Cargo.lock"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-surrealdb = { version = "1.2.0"}
+surrealdb = { version = "1.2.0", default-features = false, features = ["protocol-ws"] }
 tokio = { version = "1.36.0", features = ["macros", "rt-multi-thread"] }
 tokio-tower = "0.6.0"
 tower = "0.4.13"
