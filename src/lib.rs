@@ -1,4 +1,4 @@
-pub use builder_macro::Builder;
+pub use /* builder */_macro::Builder;
 mod surreal_client;
 mod config;
 mod error;

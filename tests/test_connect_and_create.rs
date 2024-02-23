@@ -1,8 +1,8 @@
+use builder_macro::Builder;
 use nico_surreal_client::close;
 use nico_surreal_client::Error;
 use nico_surreal_client::Storable;
 use nico_surreal_client::Ident;
-use nico_surreal_client::Builder;
 use serde::{Deserialize, Serialize};
 use surrealdb::sql::Thing;
 

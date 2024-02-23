@@ -1,7 +1,7 @@
 use nico_surreal_client::{Ident, Storable};
 use serde::{Deserialize, Serialize};
 use surrealdb::sql::{Id, Thing};
-use builder_macro::Builder;
+// use builder_macro::Builder;
 
 const TEST_TABLE: &str = "test_table";
 const TEST_PERSON: &str = "test_person";
@@ -18,7 +18,7 @@ const TEST_PERSON: &str = "test_person";
 // }
 
 // Definition
-#[derive(Builder, Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 struct Person {
     #[serde(skip_serializing)]
     id: Ident,
