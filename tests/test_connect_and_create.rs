@@ -1,8 +1,4 @@
-use builder_macro::Builder;
-use nico_surreal_client::close;
-use nico_surreal_client::Error;
-use nico_surreal_client::Storable;
-use nico_surreal_client::Ident;
+use nico_surreal_client::{close, Error, Ident, Storable};
 use serde::{Deserialize, Serialize};
 use surrealdb::sql::Thing;
 
@@ -18,7 +14,7 @@ const TEST_PERSON_TWO: &str = "test_person_2";
 // }
 
 // Definition
-#[derive(Builder, Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 struct Person {
     #[serde(skip_serializing)]
     id: Ident,
@@ -48,14 +44,18 @@ impl<'a> Storable<'a> for Person {
 
 // API Call or Factory
 fn person_factory(id: Option<Ident>, name: &str, age: u8) -> Option<Person> {
-    let mut person = Person::builder();
-    person.name(name.to_string());
-    person.age(age);
     if id.is_some() {
-        println!("ID: {:?}", id);
-        Some(person.id(id.unwrap()).build().ok()?)
+        Some(Person {
+            id: id.unwrap(),
+            name: name.to_string(),
+            age: age,
+        })
     } else {
-        Some(person.build().ok()?)
+        Some(Person {
+            id: Ident::from((TEST_TABLE, TEST_PERSON)),
+            name: name.to_string(),
+            age: age,
+        })
     }
 }
 
@@ -100,8 +100,12 @@ async fn test_basic_store() -> Result<(), Error> {
     let _: Option<Record<Person>> = delete_record(TEST_TABLE, TEST_PERSON_TWO).await.ok();
 
     // Create the Record
-    let created: Option<Record<Person>> =
-        create_record::<Person>(TEST_TABLE, Some( TEST_PERSON_TWO ), person_factory(None, "John", 32)).await?;
+    let created: Option<Record<Person>> = create_record::<Person>(
+        TEST_TABLE,
+        Some(TEST_PERSON_TWO),
+        person_factory(None, "John", 32),
+    )
+    .await?;
 
     // Check if we got a record
     let record: Option<Record<Thing>> = get_record(TEST_TABLE, TEST_PERSON_TWO).await?;

@@ -42,12 +42,19 @@ impl<'a> Storable<'a> for Person {
 
 // API Call or Factory
 fn person_factory(id: Option<Ident>, name: &str, age: u8) -> Option<Person> {
-    Person::builder()
-        .id(id.unwrap())
-        .name(name.to_string())
-        .age(age)
-        .build()
-        .ok()
+    if id.is_some() {
+        Some(Person {
+            id: id.unwrap(),
+            name: name.to_string(),
+            age: age,
+        })
+    } else {
+        Some(Person {
+            id: Ident::from((TEST_TABLE, TEST_PERSON)),
+            name: name.to_string(),
+            age: age,
+        })
+    }
 }
 
 #[tokio::main]

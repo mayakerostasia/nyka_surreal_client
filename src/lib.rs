@@ -1,45 +1,42 @@
 // pub use builder_macro::Builder;
-mod surreal_client;
 mod config;
 mod error;
-mod storable;
 mod ident;
-
-pub use error::Error;
-pub use storable::Storable;
-use surrealdb::sql::{/* Ident */ Value};
+mod storable;
+mod surreal_client;
 
 use core::fmt::Debug;
-use once_cell::sync::Lazy;
 use std::collections::BTreeMap;
 use std::future::IntoFuture;
 
-use serde::de::DeserializeOwned;
-use serde::{Deserialize, Serialize};
-
-use surrealdb::engine::any::Any;
-use surrealdb::sql::Thing;
-use surrealdb::Surreal;
-
+pub use error::Error;
 // use crate::id::Ident;
 // pub mod ident;
-
 pub use ident::Ident;
+use once_cell::sync::Lazy;
+use serde::de::DeserializeOwned;
+use serde::{Deserialize, Serialize};
+pub use storable::Storable;
+use surrealdb::engine::any::Any;
+use surrealdb::sql::Thing;
+use surrealdb::sql::{/* Ident */ Value};
+use surrealdb::{Response, Surreal};
 // use surreal_client::*;
 
 static DB: Lazy<Surreal<Any>> = Lazy::new(Surreal::init);
 static CONFIG: Lazy<config::DbConfig> = Lazy::new(config::setup);
 
 pub mod prelude {
+    pub use surrealdb::sql::Thing;
+
     pub use super::connect;
     pub use super::create_record;
-    pub use super::get_record;
     // pub use super::update_record;
     pub use super::delete_record;
+    pub use super::get_record;
+    pub use super::query;
     pub use super::Record;
-    pub use surrealdb::sql::Thing;
 }
-
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(untagged)]
@@ -78,7 +75,7 @@ where
 {
     // println!("Creating record: {} {} \n Data: {:#?}", table, id, data);
     let created: Option<Record<T>>;
-    
+
     if let Some(data) = data {
         created = DB.create((table, id.unwrap())).content(data).await?;
     } else {
@@ -143,6 +140,11 @@ where
             // msg: Err(surrealdb::err::Error::NoRecordFound).expect_err(msg),
         });
     }
+}
+
+pub async fn query(query: &str) -> Result<Response, Error> {
+    let results: Response = DB.query(query).await?;
+    Ok(results)
 }
 
 pub async fn connect(address: Option<&str>) -> Result<(), Error> {

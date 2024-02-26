@@ -1,4 +1,5 @@
 use std::{fmt::Debug, str::FromStr};
+
 use serde::{Deserialize, Serialize};
 use surrealdb::sql::{Id, Thing};
 
@@ -58,8 +59,6 @@ impl FromStr for Ident {
         Ok(Ident { id })
     }
 }
-
-
 
 #[cfg(test)]
 mod tests {

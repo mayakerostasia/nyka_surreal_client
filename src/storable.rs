@@ -1,8 +1,10 @@
-use crate::prelude::*;
-use crate::Error;
+use std::fmt::Debug;
+
 use async_trait::async_trait;
 use serde::{de::DeserializeOwned, Serialize};
-use std::fmt::Debug;
+
+use crate::prelude::*;
+use crate::Error;
 
 #[async_trait]
 pub trait Storable<'a>
