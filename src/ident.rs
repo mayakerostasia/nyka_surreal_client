@@ -10,6 +10,12 @@ use surrealdb::sql::{Id, Thing};
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct SurrealID(pub Thing);
 
+impl Default for SurrealID {
+    fn default() -> Self {
+        SurrealID(Thing::from(("_", Id::rand().to_raw().as_str())))
+    }
+}
+
 impl Display for SurrealID {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?}", self.0)
