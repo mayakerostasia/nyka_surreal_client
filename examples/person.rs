@@ -20,7 +20,7 @@ const TEST_PERSON: &str = "test_person";
 // Definition
 #[derive(Debug, Deserialize, Serialize, Clone)]
 struct Person {
-    // #[serde(skip_serializing)]
+    #[serde(skip_serializing)]
     id: u8,
     name: String,
     age: u8,

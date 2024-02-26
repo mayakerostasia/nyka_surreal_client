@@ -94,7 +94,7 @@ impl<T: StorableId> StorableId for Record<T> {
     fn as_thing(&self) -> Thing {
         match &self {
             Record::RecordIdData(data) => data.as_thing(),
-            Record::RecordId(id) => unimplemented!(),
+            Record::RecordId(id) => <ident::Ident as Into<Thing>>::into(id.clone()),
         }
     }
 }
@@ -235,7 +235,7 @@ where
     T: StorableId,
 {
     // println!("Creating record: {} {} \n Data: {:#?}", table, id, data);
-    let created: Option<T> = DB.create((record.table(), record.id())).content(&record).await?;
+    let created: Option<T> = DB.create((record.table(), record.id())).content(record).await?;
     Ok(created)
 }
 

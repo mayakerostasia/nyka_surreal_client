@@ -62,6 +62,26 @@
             "args": [],
             "cwd": "${workspaceFolder}",
             "envFile": "${workspaceFolder}/.env"
-        }
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug 'test_connect_and_create'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--test=test_connect_and_create",
+                    "--package=nico_surreal_client"
+                ],
+                "filter": {
+                    "name": "test_connect_and_create",
+                    "kind": "test"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "envFile": "${workspaceFolder}/.env"
+        },
+
     ]
 }

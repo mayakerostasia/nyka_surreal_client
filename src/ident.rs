@@ -70,6 +70,12 @@ impl FromStr for Ident {
     }
 }
 
+// impl &Ident {
+//     pub fn as_thing(&self) -> &Thing {
+//         &self.id
+//     }
+// }
+
 #[cfg(test)]
 mod tests {
     use super::*;
