@@ -10,18 +10,16 @@ use std::collections::BTreeMap;
 use std::future::IntoFuture;
 
 pub use error::Error;
-// use crate::id::Ident;
-// pub mod ident;
 pub use ident::Ident;
 use once_cell::sync::Lazy;
-use serde::de::DeserializeOwned;
-use serde::{Deserialize, Serialize};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 pub use storable::Storable;
-use surrealdb::engine::any::Any;
-use surrealdb::sql::Thing;
-use surrealdb::sql::{/* Ident */ Value};
-use surrealdb::{Response, Surreal};
-// use surreal_client::*;
+pub use surrealdb::Response;
+use surrealdb::{
+    engine::any::Any,
+    sql::{Thing, Value},
+    Surreal,
+};
 
 static DB: Lazy<Surreal<Any>> = Lazy::new(Surreal::init);
 static CONFIG: Lazy<config::DbConfig> = Lazy::new(config::setup);
@@ -29,13 +27,18 @@ static CONFIG: Lazy<config::DbConfig> = Lazy::new(config::setup);
 pub mod prelude {
     pub use surrealdb::sql::Thing;
 
-    pub use super::connect;
-    pub use super::create_record;
-    // pub use super::update_record;
-    pub use super::delete_record;
-    pub use super::get_record;
-    pub use super::query;
-    pub use super::Record;
+    pub use super::{
+        connect,
+        create_record,
+        //    update_record,
+        delete_record,
+        get_record,
+        query,
+        Error,
+        Ident,
+        Record,
+        Storable,
+    };
 }
 
 #[derive(Debug, Serialize, Deserialize)]

@@ -1,4 +1,8 @@
-use std::{fmt::Debug, str::FromStr};
+use core::fmt::Formatter;
+use std::{
+    fmt::{Debug, Display},
+    str::FromStr,
+};
 
 use serde::{Deserialize, Serialize};
 use surrealdb::sql::{Id, Thing};
@@ -6,6 +10,12 @@ use surrealdb::sql::{Id, Thing};
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Ident {
     pub id: Thing,
+}
+
+impl Display for Ident {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self.id)
+    }
 }
 
 impl From<Thing> for Ident {
