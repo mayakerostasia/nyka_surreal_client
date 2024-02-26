@@ -1,4 +1,5 @@
-use std::borrow::Borrow;
+
+use std::pin::Pin;
 use std::fmt::Debug;
 use std::ops::Deref;
 
@@ -12,40 +13,49 @@ use crate::Error;
 pub trait Storable<'a, T>
 where 
     Self: Sized + Deref<Target = T>,
-    T: StorableId + Send + Clone
+    T: StorableId<T> + Send + Clone 
 {
     // type Item: StorableId;
 
-    async fn save(self) -> Result<Option<T>, Error> {
+    async fn save(self) -> Result<Vec<T>, Error> {
         let _ = connect(None).await.ok();
 
         let record = Record::new(self.table().as_str(), self.id().as_str(), Some(self.clone()));
-        let ret: Option<T> = create_record(record).await.expect("Whoops");
+        let ret: Vec<T> = create_record(record).await.expect("Whoops");
         Ok(ret)
     }
 
-    async fn select(self) -> Result<Option<Record<T>>, Error> {
+    async fn select(&self) -> Result<Option<Record<T>>, Error> {
         let _ = connect(None).await.ok();
-
-        let record: Record<T> = self.as_record::<Record<T>>();
-        let rec: Option<Record<T>> = get_record(record).await?;
+        let record: Record<T> = Record::new(self.table().as_str(), self.id().as_str(), None);
+        let rec: Option<Record<T>> = get_record(self.table().as_str(), self.id().as_str()).await?;
         Ok(rec)
     }
 
-    async fn delete(self) -> Result<Record<T>, Error> {
+    async fn delete(&self) -> Result<Pin<Box<T>>, Error> {
         let _ = connect(None).await.ok();
-        delete_record(self.as_record::<Record<T>>()).await
+        let rec: Result<T, Error> = delete_record(self.table().as_str(), self.id().as_str()).await;
+        match rec {
+            Ok(rec) => Ok(Box::pin(rec)),
+            Err(e) => Err(e),
+        }
     }
 }
 
-pub trait StorableId: Debug + Serialize + DeserializeOwned + Sized + Clone {
+pub trait StorableId<T>: Debug + Serialize + DeserializeOwned + Sized + Clone 
+// where T: StorableId<T>
+{
+    type Item: StorableId<T>;
+
     fn table(&self) -> String;
     fn id(&self) -> String;
+    fn data(&self) -> T;
 
-    fn as_record<T>(&self) -> Record<Self>
+    fn to_record(self) -> Record<T>
     where
     {
-        Record::new(self.table().as_str(), self.id().as_str(), Some(self.clone()))
+        let record: Record<T> = Record::new(self.table().as_str(), self.id().as_str(), Some(self.data()));
+        record
     }
 
     fn as_thing(&self) -> Thing

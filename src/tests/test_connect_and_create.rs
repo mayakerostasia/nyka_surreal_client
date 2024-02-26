@@ -16,6 +16,7 @@ const TEST_PERSON_TWO: &str = "test_person_2";
 // }
 
 // Definition
+#[allow(unused_attributes)]
 #[derive(Debug, Deserialize, Serialize, Clone)]
 struct Person {
     #[serde(skip_serializing)]
@@ -49,6 +50,7 @@ fn person_factory(id: &str, name: &str, age: u8) -> Person {
 //     Record::RecordIdData( RecordIdData::new(TEST_TABLE, Some(id.into()), data))
 // }
 
+
 #[tokio::main]
 async fn main() -> Result<(), Error> {
     // Some Test Setup
@@ -73,10 +75,10 @@ async fn main() -> Result<(), Error> {
 
     // Some Logging
     println!("Created -> Yes");
-    println!("({}:{}) -> {:?}", TEST_TABLE, TEST_PERSON, saved_john.expect("John wasn't Saved!"));
+    println!("({}:{}) -> {:?}", TEST_TABLE, TEST_PERSON, &saved_john);
 
     // // Delete the Record
-    let _old_john = Record::from(saved_john.expect(format!("Couldn't find {:?}", john).as_str())).delete().await?;
+    let _old_john = Record::from(saved_john.expect(format!("Couldn't find {:?}", rec.clone()).as_str())).delete().await?;
 
     nico_surreal_client::close().await.ok();
     Ok(())
