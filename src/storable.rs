@@ -1,4 +1,6 @@
+use std::borrow::Borrow;
 use std::fmt::Debug;
+use std::ops::Deref;
 
 use async_trait::async_trait;
 use serde::{de::DeserializeOwned, Serialize};
@@ -7,32 +9,48 @@ use crate::prelude::*;
 use crate::Error;
 
 #[async_trait]
-pub trait Storable<'a>
-where
-    Self: Serialize + DeserializeOwned + Debug + Sized,
+pub trait Storable<'a, T>
+where 
+    Self: Sized + Deref<Target = T>,
+    T: StorableId + Send + Clone
 {
-    type Item: Serialize;
+    // type Item: StorableId;
 
+    async fn save(self) -> Result<Option<T>, Error> {
+        let _ = connect(None).await.ok();
+
+        let record = Record::new(self.table().as_str(), self.id().as_str(), Some(self.clone()));
+        let ret: Option<T> = create_record(record).await.expect("Whoops");
+        Ok(ret)
+    }
+
+    async fn select(self) -> Result<Option<Record<T>>, Error> {
+        let _ = connect(None).await.ok();
+
+        let record: Record<T> = self.as_record::<Record<T>>();
+        let rec: Option<Record<T>> = get_record(record).await?;
+        Ok(rec)
+    }
+
+    async fn delete(self) -> Result<Record<T>, Error> {
+        let _ = connect(None).await.ok();
+        delete_record(self.as_record::<Record<T>>()).await
+    }
+}
+
+pub trait StorableId: Debug + Serialize + DeserializeOwned + Sized + Clone {
     fn table(&self) -> String;
     fn id(&self) -> String;
-    // fn as_thing(&self) -> Thing;
-    // fn as_record(&self) -> Record<Self::Item>;
-    // fn for_db(&self) -> ToValue;
 
-    async fn save(self) -> Result<Option<Record<Self>>, Error> {
-        let _ = connect(None).await.ok();
-        let ret: Result<Option<Record<Self>>, Error> =
-            create_record(self.table().as_str(), Some(self.id().as_str()), Some(self)).await;
-        ret
+    fn as_record<T>(&self) -> Record<Self>
+    where
+    {
+        Record::new(self.table().as_str(), self.id().as_str(), Some(self.clone()))
     }
 
-    async fn select(&self) -> Result<Option<Self>, Error> {
-        let _ = connect(None).await.ok();
-        get_record::<Self>(self.table().as_str(), self.id().as_str()).await
-    }
-
-    async fn delete(self) -> Result<Record<Self>, Error> {
-        let _ = connect(None).await.ok();
-        delete_record::<Self>(self.table().as_str(), self.id().as_str()).await
+    fn as_thing(&self) -> Thing
+    where
+    {
+        Thing::from((self.table(), self.id()))
     }
 }

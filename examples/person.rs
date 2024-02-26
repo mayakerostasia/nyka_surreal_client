@@ -1,4 +1,4 @@
-use nico_surreal_client::{Ident, Storable};
+use nico_surreal_client::{Record, Storable, StorableId};
 use serde::{Deserialize, Serialize};
 use surrealdb::sql::{Id, Thing};
 // use builder_macro::Builder;
@@ -20,15 +20,13 @@ const TEST_PERSON: &str = "test_person";
 // Definition
 #[derive(Debug, Deserialize, Serialize, Clone)]
 struct Person {
-    #[serde(skip_serializing)]
-    id: Ident,
+    // #[serde(skip_serializing)]
+    id: u8,
     name: String,
     age: u8,
 }
 
-impl<'a> Storable<'a> for Person {
-    type Item = Self;
-
+impl StorableId for Person {
     fn table(&self) -> String {
         TEST_TABLE.to_string()
         // self.id.tb.to_string()
@@ -40,31 +38,26 @@ impl<'a> Storable<'a> for Person {
     }
 }
 
+impl<'a> Storable<'_, Person> for Record<Person> {}
+
 // API Call or Factory
-fn person_factory(id: Option<Ident>, name: &str, age: u8) -> Option<Person> {
-    if id.is_some() {
-        Some(Person {
-            id: id.unwrap(),
-            name: name.to_string(),
-            age: age,
-        })
-    } else {
-        Some(Person {
-            id: Ident::from((TEST_TABLE, TEST_PERSON)),
-            name: name.to_string(),
-            age: age,
-        })
-    }
+fn person_factory(id: u8, name: &str, age: u8) -> Option<Person> {
+    Some(Person {
+        id: id,
+        name: name.to_string(),
+        age: age,
+    })
 }
 
 #[tokio::main]
 async fn main() -> Result<(), nico_surreal_client::Error> {
     // Record To Database
-    let john = person_factory(Some(Ident::from(("test_table", Id::rand()))), "John", 32).unwrap();
+    let john = person_factory( 1, "John", 32).unwrap();
     // let deleted_john = john.clone().delete().await?;
-    let saved_john = john.clone().save().await?;
-    let selected_john = john.clone().select().await?;
-    let deleted_john = john.clone().delete().await?;
+    let record_john = Record::from(john.clone());
+    let saved_john = Record::from(john.clone()).save().await?;
+    let selected_john = Record::from(john.clone()).select().await?;
+    let deleted_john = Record::from(john.clone()).delete().await?;
 
     // Some Logging
     println!("Created -> Yes");

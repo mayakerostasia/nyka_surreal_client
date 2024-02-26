@@ -32,15 +32,10 @@ struct Person {
 // The `table` method returns the name of the table in the database
 // The `id` method returns the name of the id field in the database
 // The `Item` associated type is the type of the object being stored
-impl<'a> Storable<'a> for Person {
-    type Item = Self;
-
-    fn table(&self) -> &'a str {
-        TEST_TABLE
-    }
-
-    fn id(&self) -> &'a str {
-        TEST_PERSON
+impl<'a> Storable<'a> for Person {}
+impl StorableId for Person {
+    fn id(&self) -> String {
+        self.name.clone()
     }
 }
 

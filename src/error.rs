@@ -38,6 +38,9 @@ pub enum Error {
 
     #[error("Poison Error: {0}")]
     PoisonError(String),
+
+    #[error("No Data stored in Record! {0}")]
+    NoDataStored(String),
 }
 
 // impl From<PoisonError<RwLockReadGuard<'_, DBClient>>> for Error {
