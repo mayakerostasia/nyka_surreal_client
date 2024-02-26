@@ -1,6 +1,6 @@
 use nico_surreal_client::{Record, Storable, StorableId};
 use serde::{Deserialize, Serialize};
-use surrealdb::sql::{Id, Thing};
+
 // use builder_macro::Builder;
 
 const TEST_TABLE: &str = "test_table";
@@ -54,7 +54,7 @@ async fn main() -> Result<(), nico_surreal_client::Error> {
     // Record To Database
     let john = person_factory( 1, "John", 32).unwrap();
     // let deleted_john = john.clone().delete().await?;
-    let record_john = Record::from(john.clone());
+    let _record_john = Record::from(john.clone());
     let saved_john = Record::from(john.clone()).save().await?;
     let selected_john = Record::from(john.clone()).select().await?;
     let deleted_john = Record::from(john.clone()).delete().await?;

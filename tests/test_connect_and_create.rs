@@ -31,14 +31,6 @@ impl StorableId for Person {
 }
 
 impl Storable<'_, Person> for Record<Person> {}
-// API Call or Factory
-// use nico_surreal_client::
-// fn person_factory(name: &str, age: u8) -> Option<Person> {
-//     Some(Person {
-//         name: name.to_string(),
-//         age,
-//     })
-// }
 
 // API Call or Factory
 fn person_factory(id: &str, name: &str, age: u8) -> Person {
@@ -55,37 +47,37 @@ fn recordify<T>(id: &str, data: T) -> Record<T> {
 
 #[tokio::test]
 async fn test_storable() -> Result<(), Error> {
-    // // Some Test Setup
-    // use nico_surreal_client::connect;
-    // use nico_surreal_client::prelude::{delete_record, Record};
-    // let _ = connect(None).await.ok();
+    // Some Test Setup
+    use nico_surreal_client::connect;
+    use nico_surreal_client::prelude::{delete_record, Record};
+    let _ = connect(None).await.ok();
 
-    // let rec = Record::RecordIdData(RecordIdData::new(
-    //     TEST_TABLE, 
-    //     Some(Id::from(TEST_PERSON)), 
-    //     person_factory(TEST_PERSON, "John", 32)
-    // ));
-    // let _: Option<Record<Person>> = delete_record(rec).await.ok();
-    // // End Test Setup
+    let rec = Record::RecordIdData(RecordIdData::new(
+        TEST_TABLE, 
+        Some(Id::from(TEST_PERSON)), 
+        person_factory(TEST_PERSON, "John", 32)
+    ));
+    let _: Option<Record<Person>> = delete_record(rec).await.ok();
+    // End Test Setup
 
-    // // Initiate the connection using ENV Vars
-    // let john = recordify::<Person>(
-    //         TEST_TABLE,
-    //         person_factory(
-    //             TEST_PERSON, 
-    //             "John", 
-    //             32
-    //         ));
+    // Initiate the connection using ENV Vars
+    let john = recordify::<Person>(
+            TEST_TABLE,
+            person_factory(
+                TEST_PERSON, 
+                "John", 
+                32
+            ));
 
-    // // Create the Record
-    // let saved_john = john.save().await?;
+    // Create the Record
+    let saved_john = john.clone().save().await?;
 
-    // // Some Logging
-    // println!("Created -> Yes");
-    // println!("({}:{}) -> {:?}", TEST_TABLE, TEST_PERSON, saved_john);
+    // Some Logging
+    println!("Created -> Yes");
+    println!("({}:{}) -> {:?}", TEST_TABLE, TEST_PERSON, saved_john);
 
     // // Delete the Record
-    // let _old_john = saved_john.delete().await?;
+    let _old_john = Record::from(saved_john.expect(format!("Couldn't find {:?}", john).as_str())).delete().await?;
 
     // self::close().await.ok();
     Ok(())
