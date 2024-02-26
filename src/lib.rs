@@ -8,16 +8,16 @@ mod storable;
 use core::fmt::Debug;
 
 
-use std::{borrow::Borrow, ops::{ Deref, DerefMut }};
+use std::ops::{ Deref, DerefMut };
 use surrealdb::sql::Value;
 
 
 
 pub use error::Error;
-pub use ident::Ident;
+pub use ident::SurrealID;
 
 use once_cell::sync::Lazy;
-use serde::{Deserialize, Serialize};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 pub use storable::{ Storable, StorableId };
 use surrealdb::opt::IntoResource;
 pub use surrealdb::{ Response, sql::Id };
@@ -42,7 +42,7 @@ pub mod prelude {
         get_record,
         query,
         Error,
-        Ident,
+        SurrealID,
         Record,
         Storable,
     };
@@ -52,7 +52,7 @@ pub mod prelude {
 #[serde(untagged)]
 pub enum Record<T> {
     RecordIdData(RecordIdData<T>),
-    RecordId(Ident),
+    RecordId(SurrealID),
     // Records(Vec<T>),
     // RecordIdData {
     //     id: Ident,
@@ -81,22 +81,23 @@ impl<T> Record<T> {
     pub fn new(tb: &str, id: &str, data: Option<T>) -> Self {
         match data {
             Some(data) => Record::RecordIdData(RecordIdData::new(tb, Some(id.into()), data)),
-            None => Record::RecordId(Ident::from(Thing::from((tb, id)))),
+            None => Record::RecordId(SurrealID::from(Thing::from((tb, id)))),
         }
     }
 }
 impl<T: StorableId<T>> StorableId<T> for Record<T> {
+    // type Id = String;
     type Item = T;
     fn table(&self) -> String {
         match &self {
             Record::RecordIdData(data) => data.table(),
-            Record::RecordId(id) => id.id.tb.clone(),
+            Record::RecordId(id) => id.0.tb.clone(),
         }
     }
     fn id(&self) -> String {
         match &self {
             Record::RecordIdData(data) => data.id(),
-            Record::RecordId(id) => id.id.id.to_string(),
+            Record::RecordId(id) => id.0.id.to_string(),
         }
     }
     fn data(&self) -> Self::Item {
@@ -107,11 +108,6 @@ impl<T: StorableId<T>> StorableId<T> for Record<T> {
     }
 }
 
-// impl<T: StorableId<T>> From<T> for Record<T> {
-//     fn from(data: T) -> Self {
-//         Record::new(data.table().as_str(), data.id().as_str(), Some(data))
-//     }
-// }
 impl<T: StorableId<T>> Deref for Record<T> {
     type Target = T;
     fn deref(&self) -> &Self::Target {
@@ -122,39 +118,25 @@ impl<T: StorableId<T>> Deref for Record<T> {
     }
 }
 
-// impl<T: StorableId<T>> DerefMut for Record<T> {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         match self.data() {
-//             data => data.clone().unwrap(),
-//             _ => panic!("RecordId: {:?}", id),
-//         }
-//         // match &mut self {
-//         //     Record::RecordIdData(_data) => &mut self,
-//         //     Record::RecordId(id) => panic!("RecordId: {:?}", id),
-//         // }
-//     }
-// }
-
-
 #[derive(Debug, Serialize, Deserialize, Clone)] 
 pub struct RecordIdData<T> {
-    pub id: Ident,
+    pub id: SurrealID,
     pub data: Option<T>,
 }
 
 impl<T> RecordIdData<T> {
-    fn _new(id: Ident, data: T) -> Self {
+    fn _new(id: SurrealID, data: T) -> Self {
         RecordIdData { id, data: Some(data) }
     }
 
     pub fn new(tb: &str, id: Option<Id>, data: T) -> Self {
         match id {
             Some(id) => RecordIdData {
-                id: Ident::from(Thing::from((tb, id.to_raw().as_str()))),
+                id: SurrealID::from(Thing::from((tb, id.to_raw().as_str()))),
                 data: Some(data),
             },
             None => RecordIdData {
-                id: Ident::from(Thing::from((tb, Id::rand().to_raw().as_str()))),
+                id: SurrealID::from(Thing::from((tb, Id::rand().to_raw().as_str()))),
                 data: Some(data),
             },
         }
@@ -163,11 +145,11 @@ impl<T> RecordIdData<T> {
     pub fn new_dataless(tb: &str, id: Option<Id>) -> Self {
         match id {
             Some(id) => RecordIdData {
-                id: Ident::from(Thing::from((tb, id.to_raw().as_str()))),
+                id: SurrealID::from(Thing::from((tb, id.to_raw().as_str()))),
                 data: None
             },
             None => RecordIdData {
-                id: Ident::from(Thing::from((tb, Id::rand().to_raw().as_str()))),
+                id: SurrealID::from(Thing::from((tb, Id::rand().to_raw().as_str()))),
                 data: None,
             },
         }
@@ -183,12 +165,14 @@ impl<T> RecordIdData<T> {
 }
 
 impl<T: StorableId<T>> StorableId<T> for RecordIdData<T> {
+    // type Id = SurrealID;
     type Item = Record<T>;
+
     fn table(&self) -> String {
-        self.id.id.tb.clone()
+        self.id.0.tb.clone()
     }
     fn id(&self) -> String {
-        self.id.id.id.to_string()
+        self.id.0.id.to_string()
     }
     fn data(&self) -> T {
         self.data.clone().unwrap()
@@ -256,19 +240,18 @@ where
     Ok(created)
 }
 
-// pub async fn update_record<T>(table: &str, id: &str, data: Option<T>) -> Result<Option<Record<T>>, Error>
-// where
-//     T: Serialize + Debug,
-//     T: DeserializeOwned + Debug,
-// {
-//     let updated: Option<Record<T>>;
-//     if let Some(data) = data {
-//         updated = DB.update((table, id)).content(data).await?;
-//     } else {
-//         updated = DB.update((table, id)).await?;
-//     }
-//     Ok(updated)
-// }
+pub async fn updata_record<'a, T>(table: &str, id: &str, data: Option<T>) -> Result<Option<Record<T>>, Error>
+where
+    T: StorableId<T>,
+{
+    let updated;
+    if let Some(data) = data {
+        updated = DB.update((table, id)).content(data).await?;
+    } else {
+        updated = DB.update((table, id)).await?;
+    }
+    Ok(updated)
+}
 
 pub async fn get_record<T>(table: &str, id: &str) -> Result<Option<Record<T>>, Error>
 where

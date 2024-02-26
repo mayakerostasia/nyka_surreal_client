@@ -1,50 +1,30 @@
-// use std::ops::Deref;
-
-// use serde::de::value::MapDeserializer;
-// use serde::de::MapAccess;
-use std::collections::BTreeMap;
-use std::ops::Deref;
-use serde_with::serde_as;
+use nico_surreal_client::SurrealID;
 use nico_surreal_client::{Record, Storable, StorableId, prelude::Thing};
 use serde::{Deserialize, Serialize};
-use surrealdb::opt::Resource;
-use surrealdb::sql::Value;
-
-// use builder_macro::Builder;
 
 const TEST_TABLE: &str = "test_table";
 const TEST_PERSON: &str = "test_person";
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct PersonId(Thing);
-
-impl Deref for PersonId {
-    type Target = Thing;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
 
 // Definition
 #[allow(dead_code)]
 #[derive(Debug, Deserialize, Serialize, Clone)]
 struct Person {
-    id: PersonId,
+    id: SurrealID,
     name: String,
     age: u8,
 }
 
 impl StorableId<Person> for Person {
+    // type Id = PersonId;
     type Item = Person;
 
     
     fn table(&self) -> String {
-        (*(self.id)).tb.clone()
+        self.id.0.tb.clone()
     }
 
     fn id(&self) -> String {
-        (*(self.id)).id.clone().to_raw()
+        self.id.0.id.clone().to_raw()
     }
 
     fn data(&self) -> Self::Item {
@@ -64,7 +44,7 @@ impl<'a> Storable<'_, Person> for Record<Person> {}
 // API Call or Factory
 fn person_factory(table: &str, id: &str, name: &str, age: u8) -> Option<Person> {
     Some(Person {
-        id: PersonId(Thing::from((table, id))),
+        id: SurrealID(Thing::from((table, id))),
         name: name.to_string(),
         age: age,
     })

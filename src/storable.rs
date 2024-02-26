@@ -1,4 +1,5 @@
 
+use std::fmt::Display;
 use std::pin::Pin;
 use std::fmt::Debug;
 use std::ops::Deref;
@@ -46,6 +47,7 @@ pub trait StorableId<T>: Debug + Serialize + DeserializeOwned + Sized + Clone
 // where T: StorableId<T>
 {
     type Item: StorableId<T>;
+    // type Id; 
 
     fn table(&self) -> String;
     fn id(&self) -> String;

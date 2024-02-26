@@ -8,65 +8,55 @@ use serde::{Deserialize, Serialize};
 use surrealdb::sql::{Id, Thing};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct Ident {
-    pub id: Thing,
-}
+pub struct SurrealID(pub Thing);
 
-impl Display for Ident {
+impl Display for SurrealID {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self.id)
+        write!(f, "{:?}", self.0)
     }
 }
 
-impl From<Thing> for Ident {
+impl From<Thing> for SurrealID {
     fn from(thing: Thing) -> Self {
-        Ident { id: thing }
+        SurrealID(thing)
     }
 }
 
-impl From<Ident> for Thing {
-    fn from(ident: Ident) -> Self {
-        ident.id
+impl From<SurrealID> for Thing {
+    fn from(ident: SurrealID) -> Self {
+        ident.0
     }
 }
 
-impl From<(String, String)> for Ident {
+impl From<(String, String)> for SurrealID {
     fn from((tb, id): (String, String)) -> Self {
-        Ident {
-            id: Thing::from((tb, id)),
-        }
+        SurrealID ( Thing::from((tb, id)),)
     }
 }
 
-impl From<(&str, &str)> for Ident {
+impl From<(&str, &str)> for SurrealID {
     fn from((tb, id): (&str, &str)) -> Self {
-        Ident {
-            id: Thing::from((tb, id)),
-        }
+        SurrealID(Thing::from((tb, id)))
     }
 }
 
-impl From<(String, Id)> for Ident {
+impl From<(String, Id)> for SurrealID {
     fn from((tb, id): (String, Id)) -> Self {
-        Ident {
-            id: Thing::from((tb, id)),
-        }
+        SurrealID(Thing::from((tb, id)))
     }
 }
 
-impl From<(&str, Id)> for Ident {
+impl From<(&str, Id)> for SurrealID {
     fn from((tb, id): (&str, Id)) -> Self {
-        Ident {
-            id: Thing::from((tb, id)),
-        }
+        SurrealID(Thing::from((tb, id)))
     }
 }
 
-impl FromStr for Ident {
+impl FromStr for SurrealID {
     type Err = ();
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let id: Thing = s.parse().unwrap();
-        Ok(Ident { id })
+        Ok(SurrealID(id))
     }
 }
 
@@ -83,7 +73,7 @@ mod tests {
     #[test]
     fn test_ident() {
         let random = Thing::from(("random", "1"));
-        let ident: Ident = random.into();
+        let ident: SurrealID = random.into();
         println!("{:#?}", ident);
     }
 }
