@@ -44,6 +44,7 @@ pub trait SurrealIDTable {
 pub trait SurrealIDIdent {
     fn id(&self) -> String;
 }
+
 impl SurrealIDFactory for SurrealID {}
 impl SurrealIDIdent for SurrealID {
     fn id(&self) -> String {
