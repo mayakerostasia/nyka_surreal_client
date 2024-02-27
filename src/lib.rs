@@ -1,24 +1,21 @@
-// pub use builder_macro::Builder;
 mod config;
 mod error;
-mod ident;
+pub mod record;
+pub mod ident;
 mod storable;
-// mod surreal_client;
+use ident::{SurrealData, HasSurrealIdentifier, SurrealIDIdent, SurrealIDTable};
+pub use record::Record;
 
 use core::fmt::Debug;
 
 
-use std::ops::{ Deref, DerefMut };
-use surrealdb::sql::Value;
-
-
-
+use std::ops::Deref;
 pub use error::Error;
 pub use ident::SurrealID;
 
 use once_cell::sync::Lazy;
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
-pub use storable::{ Storable, StorableId };
+use serde::{Deserialize, Serialize, de::DeserializeOwned};
+pub use storable::{ Storable, StorableId, DBThings};
 use surrealdb::opt::IntoResource;
 pub use surrealdb::{ Response, sql::Id };
 use surrealdb::{
@@ -46,76 +43,6 @@ pub mod prelude {
         Record,
         Storable,
     };
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-#[serde(untagged)]
-pub enum Record<T> {
-    RecordIdData(RecordIdData<T>),
-    RecordId(SurrealID),
-    // Records(Vec<T>),
-    // RecordIdData {
-    //     id: Ident,
-    //     data: BTreeMap<String, Value>,
-    // },
-    // RecordId(Ident),
-}
-
-impl<T: StorableId<T>> From<Object> for Record<T> {
-    fn from(object: Object) -> Record<T> {
-        match object {
-            Object(map) => {
-                let id = map.get("id");
-                println!("{:?}", id);
-                todo!();
-                // let tb = map.get("tb").unwrap();
-                // let data = map.get("data").unwrap();
-                // let data = serde_json::from_value(Value::Object(data.clone())).unwrap();
-                // Ok(Record::RecordIdData(RecordIdData::new(, Some(id.into()), data)))
-            },
-            _ => unimplemented!(),
-        }
-    }
-}
-impl<T> Record<T> {
-    pub fn new(tb: &str, id: &str, data: Option<T>) -> Self {
-        match data {
-            Some(data) => Record::RecordIdData(RecordIdData::new(tb, Some(id.into()), data)),
-            None => Record::RecordId(SurrealID::from(Thing::from((tb, id)))),
-        }
-    }
-}
-impl<T: StorableId<T>> StorableId<T> for Record<T> {
-    // type Id = String;
-    type Item = T;
-    fn table(&self) -> String {
-        match &self {
-            Record::RecordIdData(data) => data.table(),
-            Record::RecordId(id) => id.0.tb.clone(),
-        }
-    }
-    fn id(&self) -> String {
-        match &self {
-            Record::RecordIdData(data) => data.id(),
-            Record::RecordId(id) => id.0.id.to_string(),
-        }
-    }
-    fn data(&self) -> Self::Item {
-        match &self {
-            Record::RecordIdData(data) => data.data.clone().unwrap(),
-            Record::RecordId(id) => panic!("RecordId: {:?}", id),
-        }
-    }
-}
-
-impl<T: StorableId<T>> Deref for Record<T> {
-    type Target = T;
-    fn deref(&self) -> &Self::Target {
-        match &self {
-            Record::RecordIdData(data) => data.data.as_ref().unwrap(),
-            Record::RecordId(id) => panic!("RecordId: {:?}", id),
-        }
-    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)] 
@@ -164,87 +91,22 @@ impl<T> RecordIdData<T> {
     }
 }
 
-impl<T: StorableId<T>> StorableId<T> for RecordIdData<T> {
-    // type Id = SurrealID;
-    type Item = Record<T>;
-
-    fn table(&self) -> String {
-        self.id.0.tb.clone()
-    }
-    fn id(&self) -> String {
-        self.id.0.id.to_string()
-    }
-    fn data(&self) -> T {
-        self.data.clone().unwrap()
-    }
-}
-
-
-// #[async_trait]
-// impl<T> Storable<'_, Record<T>> for Record<T>
-// where T: StorableId + Debug + Serialize + DeserializeOwned + Sized + Clone
-// {
-//     type Item = Record<T>;
-// }
-
-impl<T> Record<T> {
-    pub fn into_inner(self) -> Option<T> {
-        match self {
-            Record::RecordIdData(data) => data.data,
-            _ => unimplemented!(),
-        }
-    }
-
-    pub fn into_inner_mut(&mut self) -> &mut Option<T> {
-        match self {
-            Record::RecordIdData(data) => &mut data.data,
-            _ => unimplemented!(),
-        }
-    }
-}
-
-impl<T: StorableId<T>> From<Resource> for Record<T> {
-	fn from(resource: Resource) -> Self {
-		match resource {
-			// Resource::Table(resource) => resource.into(),
-			Resource::RecordId(resource) => resource.into(),
-			// Resource::Object(resource) => resource.into(),
-			// Resource::Array(resource) => resource.into(),
-			// Resource::Edges(resource) => resource.into(),
-            _ => unimplemented!(),
-		}
-	}
-}
-
-impl<T: StorableId<T>> IntoResource<Record<T>> for Record<T> {
-    fn into_resource(self) -> Result<Resource, surrealdb::Error> {
-        let thinggy = self.as_thing();
-        Ok(thinggy.into())
-    }
-}
-
-impl<T: StorableId<T>> From<Thing> for Record<T> {
-    fn from(thing: Thing) -> Self {
-        Record::new(&thing.tb, &thing.id.to_raw(), None)
-    }
-}
 
 pub async fn create_record<T>(
     record: Record<T>,
 ) -> Result<Vec<T>, Error>
 where
-    T: StorableId<T>,
+    T: HasSurrealIdentifier + SurrealData + DBThings + From<Record<T>>
 {
-    // println!("Creating record: {} {} \n Data: {:#?}", table, id, data);
-    let created: Vec<T> = DB.create(record.table()).content(record.data()).await?;
+    let created: Vec<T> = DB.create(record.table()).content(record.data::<T>()).await?;
     Ok(created)
 }
 
 pub async fn updata_record<'a, T>(table: &str, id: &str, data: Option<T>) -> Result<Option<Record<T>>, Error>
 where
-    T: StorableId<T>,
+    T: HasSurrealIdentifier + SurrealData + DBThings
 {
-    let updated;
+    let updated: Option<Record<T>>;
     if let Some(data) = data {
         updated = DB.update((table, id)).content(data).await?;
     } else {
@@ -255,9 +117,10 @@ where
 
 pub async fn get_record<T>(table: &str, id: &str) -> Result<Option<Record<T>>, Error>
 where
-    T: StorableId<T>,
+    T: HasSurrealIdentifier + DBThings
 {
     println!("Getting record: {:?}:{:?}", &table, &id);
+
     let value: Result<Option<Record<T>>, Error> = DB
         .select((table, id)) // Implement the IntoResource<T> trait for surrealdb::sql::Thing
         .await
@@ -274,7 +137,8 @@ where
     // todo!();
 }
 
-pub async fn delete_record<T: StorableId<T>>(table: &str, id: &str) -> Result<T, Error>
+pub async fn delete_record<T>(table: &str, id: &str) -> Result<T, Error>
+where T: HasSurrealIdentifier + DBThings
 {
     let deleted: Option<T> = DB.delete((table, id)).await?;
     if let Some(deleted) = deleted {

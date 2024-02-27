@@ -1,5 +1,11 @@
-use nico_surreal_client::SurrealID;
-use nico_surreal_client::{Record, Storable, StorableId, prelude::Thing};
+use nico_surreal_client::ident::{HasSurrealIdentifier, SurrealData};
+use nico_surreal_client::{DBThings, SurrealID};
+use nico_surreal_client::{Record, Storable, StorableId, prelude::Thing, 
+    ident::{
+        SurrealIDTable,
+        SurrealIDIdent,
+        SurrealIDFactory,    
+}};
 use serde::{Deserialize, Serialize};
 
 const TEST_TABLE: &str = "test_table";
@@ -13,32 +19,28 @@ struct Person {
     name: String,
     age: u8,
 }
-
-impl StorableId<Person> for Person {
-    // type Id = PersonId;
-    type Item = Person;
-
-    
-    fn table(&self) -> String {
-        self.id.0.tb.clone()
-    }
-
+impl Storable for Person {}
+impl SurrealIDIdent for Person {
     fn id(&self) -> String {
         self.id.0.id.clone().to_raw()
     }
-
-    fn data(&self) -> Self::Item {
-        self.clone()
+}
+impl SurrealIDTable for Person {
+    fn table(&self) -> String {
+        self.id.0.tb.clone()
     }
 }
-
-impl From<Person> for Record<Person> {
-    fn from(person: Person) -> Record<Person> {
-        Record::new(TEST_TABLE, TEST_PERSON, Some(person))
+impl DBThings for Person {}
+impl HasSurrealIdentifier for Person {}
+impl SurrealData for Person {}
+impl From<Record<Person>> for Person {
+    fn from(record: Record<Person>) -> Self {
+        let id = SurrealID::new(record.table().as_str(), Some(record.id().as_str()));
+        println!("ID: {:?}", &id);
+        let data = record.into_inner().unwrap();
+        data
     }
 }
-
-impl<'a> Storable<'_, Person> for Record<Person> {}
 
 
 // API Call or Factory
@@ -54,14 +56,13 @@ fn person_factory(table: &str, id: &str, name: &str, age: u8) -> Option<Person> 
 async fn main() -> Result<(), nico_surreal_client::Error> {
     // Record To Database
     let john = person_factory(TEST_TABLE, "one", "John", 32).unwrap();
-    let _record_john = Record::from(john.clone());
-    println!("Record John: {:?}", _record_john);
-    _record_john.delete().await;
+    println!("Record John: {:?}", &john);
+    let _ = &john.delete().await;
 
-    let save_john = Record::from(john.clone());
-    let saved_john = save_john.save().await;
-    let selected_john = Record::from(john.clone()).select().await?;
-    let deleted_john = Record::from(john.clone()).delete().await?;
+    // let save_john = Record::from(john.clone());
+    let saved_john = (&john).clone().save().await;
+    let selected_john = &john.select().await?;
+    let deleted_john = &john.delete().await?;
 
     // Some Logging
     println!("Created -> Yes");

@@ -7,35 +7,63 @@ use std::ops::Deref;
 use async_trait::async_trait;
 use serde::{de::DeserializeOwned, Serialize};
 
+use crate::RecordIdData;
+use crate::ident::SurrealData;
+use crate::ident::HasSurrealIdentifier;
+use crate::ident::SurrealIDFactory;
+use crate::ident::SurrealIDIdent;
+use crate::ident::SurrealIDTable;
 use crate::prelude::*;
 use crate::Error;
 
-#[async_trait]
-pub trait Storable<'a, T>
-where 
-    Self: Sized + Deref<Target = T>,
-    T: StorableId<T> + Send + Clone 
-{
-    // type Item: StorableId;
+// impl<T: DBThings + SurrealIDIdent + SurrealIDTable> From<T> for Record<T> {
+//     fn from(data: T) -> Record<T> {
+//         Record::RecordIdData(
+//             RecordIdData::new(
+//                 data.table().as_str(), 
+//                 Some(Id::from(data.id())),
+//                 data
+//             ))
+//     }
+// }
+impl<'a, T: Storable> From<T> for Record<T> {
+    fn from(storable: T) -> Self {
+        let id = (&storable).id();
+        let table = (&storable).table();
+        let data = storable.data();
+        let record: Record<T> = Record::new(table.as_str(), id.as_str(), Some(Box::new(data)));
+        record
+    }
+}
 
-    async fn save(self) -> Result<Vec<T>, Error> {
+#[async_trait]
+pub trait Storable
+where 
+    Self: Sized + DBThings + HasSurrealIdentifier + SurrealData + From<Record<Self>>
+    // T: HasSurrealIdentifier + SurrealData + DBThings,
+{
+    async fn save(self) -> Result<Vec<Self>, Error> {
         let _ = connect(None).await.ok();
 
-        let record = Record::new(self.table().as_str(), self.id().as_str(), Some(self.clone()));
-        let ret: Vec<T> = create_record(record).await.expect("Whoops");
+        let ret: Vec<Self> = create_record(
+            Record::new(
+                self.table().as_str(), 
+                self.id().as_str(), 
+                Some(Box::new(self))
+            )
+        ).await.expect("Whoops");
         Ok(ret)
     }
 
-    async fn select(&self) -> Result<Option<Record<T>>, Error> {
+    async fn select(&self) -> Result<Option<Record<Self>>, Error> {
         let _ = connect(None).await.ok();
-        let record: Record<T> = Record::new(self.table().as_str(), self.id().as_str(), None);
-        let rec: Option<Record<T>> = get_record(self.table().as_str(), self.id().as_str()).await?;
+        let rec: Option<Record<Self>> = get_record(self.table().as_str(), self.id().as_str()).await?;
         Ok(rec)
     }
 
-    async fn delete(&self) -> Result<Pin<Box<T>>, Error> {
+    async fn delete(&self) -> Result<Pin<Box<Self>>, Error> {
         let _ = connect(None).await.ok();
-        let rec: Result<T, Error> = delete_record(self.table().as_str(), self.id().as_str()).await;
+        let rec: Result<Self, Error> = delete_record(self.table().as_str(), self.id().as_str()).await;
         match rec {
             Ok(rec) => Ok(Box::pin(rec)),
             Err(e) => Err(e),
@@ -43,22 +71,21 @@ where
     }
 }
 
-pub trait StorableId<T>: Debug + Serialize + DeserializeOwned + Sized + Clone 
-// where T: StorableId<T>
+pub trait DBThings: Debug + Serialize + DeserializeOwned + Sized + Clone {}
+
+pub trait StorableId<T>: DBThings
+where
+    Self: HasSurrealIdentifier + SurrealData,
+    T: HasSurrealIdentifier + SurrealData,
 {
-    type Item: StorableId<T>;
-    // type Id; 
+    type Item: DBThings;
 
-    fn table(&self) -> String;
-    fn id(&self) -> String;
-    fn data(&self) -> T;
-
-    fn to_record(self) -> Record<T>
-    where
-    {
-        let record: Record<T> = Record::new(self.table().as_str(), self.id().as_str(), Some(self.data()));
-        record
-    }
+    // fn to_record<T>(self) -> Record<T>
+    // where
+    // {
+    //     let record: Record<T> = Record::new(self.table().as_str(), self.id().as_str(), Some(self.data()));
+    //     record
+    // }
 
     fn as_thing(&self) -> Thing
     where
