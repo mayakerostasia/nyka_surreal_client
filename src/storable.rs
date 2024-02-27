@@ -1,46 +1,18 @@
-
-use std::fmt::Display;
 use std::pin::Pin;
 use std::fmt::Debug;
-use std::ops::Deref;
-
 use async_trait::async_trait;
 use serde::{de::DeserializeOwned, Serialize};
-
-use crate::RecordIdData;
 use crate::ident::SurrealData;
 use crate::ident::HasSurrealIdentifier;
-use crate::ident::SurrealIDFactory;
-use crate::ident::SurrealIDIdent;
-use crate::ident::SurrealIDTable;
 use crate::prelude::*;
 use crate::Error;
 
-// impl<T: DBThings + SurrealIDIdent + SurrealIDTable> From<T> for Record<T> {
-//     fn from(data: T) -> Record<T> {
-//         Record::RecordIdData(
-//             RecordIdData::new(
-//                 data.table().as_str(), 
-//                 Some(Id::from(data.id())),
-//                 data
-//             ))
-//     }
-// }
-impl<'a, T: Storable> From<T> for Record<T> {
-    fn from(storable: T) -> Self {
-        let id = (&storable).id();
-        let table = (&storable).table();
-        let data = storable.data();
-        let record: Record<T> = Record::new(table.as_str(), id.as_str(), Some(Box::new(data)));
-        record
-    }
-}
+pub trait DBThings: Debug + Serialize + DeserializeOwned + Sized + Clone {}
 
 #[async_trait]
 pub trait Storable
 where 
-    Self: Sized + DBThings + HasSurrealIdentifier + SurrealData + From<Record<Self>>
-    // T: HasSurrealIdentifier + SurrealData + DBThings,
+    Self: DBThings + HasSurrealIdentifier + SurrealData + From<Record<Self>>
 {
     async fn save(self) -> Result<Vec<Self>, Error> {
         let _ = connect(None).await.ok();
@@ -71,25 +43,12 @@ where
     }
 }
 
-pub trait DBThings: Debug + Serialize + DeserializeOwned + Sized + Clone {}
-
-pub trait StorableId<T>: DBThings
-where
-    Self: HasSurrealIdentifier + SurrealData,
-    T: HasSurrealIdentifier + SurrealData,
-{
-    type Item: DBThings;
-
-    // fn to_record<T>(self) -> Record<T>
-    // where
-    // {
-    //     let record: Record<T> = Record::new(self.table().as_str(), self.id().as_str(), Some(self.data()));
-    //     record
-    // }
-
-    fn as_thing(&self) -> Thing
-    where
-    {
-        Thing::from((self.table(), self.id()))
+impl<'a, T: Storable> From<T> for Record<T> {
+    fn from(storable: T) -> Self {
+        let id = (&storable).id();
+        let table = (&storable).table();
+        let data = storable.data();
+        let record: Record<T> = Record::new(table.as_str(), id.as_str(), Some(Box::new(data)));
+        record
     }
 }

@@ -1,12 +1,14 @@
-use nico_surreal_client::ident::{HasSurrealIdentifier, SurrealData};
-use nico_surreal_client::{DBThings, SurrealID};
-use nico_surreal_client::{Record, Storable, StorableId, prelude::Thing, 
-    ident::{
-        SurrealIDTable,
-        SurrealIDIdent,
-        SurrealIDFactory,    
-}};
-use serde::{Deserialize, Serialize};
+// use nico_surreal_client::ident::{HasSurrealIdentifier, SurrealData};
+// use nico_surreal_client::{DBThings, SurrealID};
+// use nico_surreal_client::{Record, Storable, prelude::Thing, 
+//     ident::{
+//         SurrealIDTable,
+//         SurrealIDIdent,
+//         SurrealIDFactory,    
+// }};
+// use serde::{Deserialize, Serialize};
+
+use nico_surreal_client::prelude::*;
 
 const TEST_TABLE: &str = "test_table";
 const TEST_PERSON: &str = "test_person";
@@ -35,7 +37,10 @@ impl HasSurrealIdentifier for Person {}
 impl SurrealData for Person {}
 impl From<Record<Person>> for Person {
     fn from(record: Record<Person>) -> Self {
-        let id = SurrealID::new(record.table().as_str(), Some(record.id().as_str()));
+        let id = SurrealID::new(
+            record.table().as_str(), 
+            Some(record.id().as_str())
+        );
         println!("ID: {:?}", &id);
         let data = record.into_inner().unwrap();
         data

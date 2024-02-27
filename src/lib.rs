@@ -1,31 +1,26 @@
 mod config;
 mod error;
-pub mod record;
-pub mod ident;
 mod storable;
-use ident::{SurrealData, HasSurrealIdentifier, SurrealIDIdent, SurrealIDTable};
-pub use record::Record;
-
-use core::fmt::Debug;
-
-
-use std::ops::Deref;
-pub use error::Error;
-pub use ident::SurrealID;
+mod record;
+mod ident;
 
 use once_cell::sync::Lazy;
-use serde::{Deserialize, Serialize, de::DeserializeOwned};
-pub use storable::{ Storable, StorableId, DBThings};
-use surrealdb::opt::IntoResource;
-pub use surrealdb::{ Response, sql::Id };
 use surrealdb::{
     engine::any::Any,
-    sql::{ Thing, Object },
     Surreal,
-    opt::Resource,
+    Response
 };
 
+pub use error::Error;
+pub use ident::SurrealID;
+pub use record::Record;
+pub use storable::{ Storable, DBThings };
+pub use ident::{SurrealIDIdent, SurrealIDTable, SurrealData, HasSurrealIdentifier};
+pub use serde::{Deserialize, Serialize};
+
+
 static DB: Lazy<Surreal<Any>> = Lazy::new(Surreal::init);
+
 static CONFIG: Lazy<config::DbConfig> = Lazy::new(config::setup);
 
 pub mod prelude {
@@ -34,62 +29,18 @@ pub mod prelude {
     pub use super::{
         connect,
         create_record,
-        //    update_record,
+        // update_record,
         delete_record,
         get_record,
         query,
         Error,
-        SurrealID,
+        DBThings, SurrealID, SurrealData, HasSurrealIdentifier, SurrealIDIdent, SurrealIDTable,
         Record,
         Storable,
+        Serialize, Deserialize
     };
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)] 
-pub struct RecordIdData<T> {
-    pub id: SurrealID,
-    pub data: Option<T>,
-}
-
-impl<T> RecordIdData<T> {
-    fn _new(id: SurrealID, data: T) -> Self {
-        RecordIdData { id, data: Some(data) }
-    }
-
-    pub fn new(tb: &str, id: Option<Id>, data: T) -> Self {
-        match id {
-            Some(id) => RecordIdData {
-                id: SurrealID::from(Thing::from((tb, id.to_raw().as_str()))),
-                data: Some(data),
-            },
-            None => RecordIdData {
-                id: SurrealID::from(Thing::from((tb, Id::rand().to_raw().as_str()))),
-                data: Some(data),
-            },
-        }
-    }
-
-    pub fn new_dataless(tb: &str, id: Option<Id>) -> Self {
-        match id {
-            Some(id) => RecordIdData {
-                id: SurrealID::from(Thing::from((tb, id.to_raw().as_str()))),
-                data: None
-            },
-            None => RecordIdData {
-                id: SurrealID::from(Thing::from((tb, Id::rand().to_raw().as_str()))),
-                data: None,
-            },
-        }
-    }
-
-    pub fn into_inner(self) -> Option<T> {
-        self.data
-    }
-
-    pub fn into_inner_mut(&mut self) -> &mut Option<T> {
-        &mut self.data
-    }
-}
 
 
 pub async fn create_record<T>(

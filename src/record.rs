@@ -1,8 +1,4 @@
-// use rs_nico_tracing::span::Record;
 use serde::{Deserialize, Serialize};
-use core::ops::Deref;
-// use surrealdb::sql::{Id, Thing};
-// use std::collections::BTreeMap;
 use std::fmt::Debug;
 use crate::ident::SurrealData;
 use crate::ident::HasSurrealIdentifier;
@@ -10,11 +6,10 @@ use crate::ident::SurrealIDFactory;
 use crate::ident::SurrealIDIdent;
 use crate::ident::SurrealIDTable;
 use crate::storable::DBThings;
-use crate::RecordIdData;
 use crate::SurrealID;
-use crate::StorableId;
 
-use surrealdb::sql::{ Thing, Id };
+use surrealdb::sql::{Id, Thing};
+
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(untagged)]
@@ -56,10 +51,8 @@ impl<T: HasSurrealIdentifier> SurrealIDFactory for Record<T> {
 }
 
 impl<T: DBThings> SurrealData for Record<T> {}
-
 impl<T: DBThings> HasSurrealIdentifier for Record<T> {}
 impl<T: DBThings> DBThings for Record<T> {}
-// impl<T: DBThings> SurrealIDFactory for Record<T> {}
 impl<T: DBThings> SurrealIDIdent for Record<T> {
     fn id(&self) -> String {
         match &self {
@@ -77,69 +70,48 @@ impl<T: DBThings> SurrealIDTable for Record<T> {
     }
 }
 
-// impl<T> DBThings for Record<T> {}
+#[derive(Debug, Serialize, Deserialize, Clone)] 
+pub struct RecordIdData<T> {
+    pub id: SurrealID,
+    pub data: Option<T>,
+}
 
-// impl<T> Record<T> {
-//     pub fn new(tb: &str, id: &str, data: Option<T>) -> Self {
-//         match data {
-//             Some(data) => Record::RecordIdData(RecordIdData::new(tb, Some(id.into()), data)),
-//             None => Record::RecordId(SurrealID::from(Thing::from((tb, id)))),
-//         }
-//     }
-// }
+impl<T> RecordIdData<T> {
+    fn _new(id: SurrealID, data: T) -> Self {
+        RecordIdData { id, data: Some(data) }
+    }
 
-// trait<T: 
-// impl<T: DBThings> StorableId<T> for Record<T> {
-//     // type Id = String;
-//     type Item = T;
-//     fn id(&self) -> String {
-//         self.id()
-//     }
-//     fn table<k>(&self) -> String {
-//         self.table()
-//     }
-//     fn data(&self) -> Self::Item {
-//         match &self {
-//             Record::RecordIdData(data) => data.data.clone().unwrap(),
-//             Record::RecordId(id) => panic!("RecordId: {:?}", id),
-//         }
-//     }
-// }
+    pub fn new(tb: &str, id: Option<Id>, data: T) -> Self {
+        match id {
+            Some(id) => RecordIdData {
+                id: SurrealID::from(Thing::from((tb, id.to_raw().as_str()))),
+                data: Some(data),
+            },
+            None => RecordIdData {
+                id: SurrealID::from(Thing::from((tb, Id::rand().to_raw().as_str()))),
+                data: Some(data),
+            },
+        }
+    }
 
+    pub fn new_dataless(tb: &str, id: Option<Id>) -> Self {
+        match id {
+            Some(id) => RecordIdData {
+                id: SurrealID::from(Thing::from((tb, id.to_raw().as_str()))),
+                data: None
+            },
+            None => RecordIdData {
+                id: SurrealID::from(Thing::from((tb, Id::rand().to_raw().as_str()))),
+                data: None,
+            },
+        }
+    }
 
-// impl<T: StorableId<T>> Deref for Record<T> {
-//     type Target = T;
-//     fn deref(&self) -> &Self::Target {
-//         match &self {
-//             Record::RecordIdData(data) => data.data.as_ref().unwrap(),
-//             Record::RecordId(id) => panic!("RecordId: {:?}", id),
-//         }
-//     }
-// }
+    pub fn into_inner(self) -> Option<T> {
+        self.data
+    }
 
-// 
-// impl<T: StorableId<T>> From<Resource> for Record<T> {
-// 	fn from(resource: Resource) -> Self {
-// 		match resource {
-// 			// Resource::Table(resource) => resource.into(),
-// 			Resource::RecordId(resource) => resource.into(),
-// 			// Resource::Object(resource) => resource.into(),
-// 			// Resource::Array(resource) => resource.into(),
-// 			// Resource::Edges(resource) => resource.into(),
-//             _ => unimplemented!(),
-// 		}
-// 	}
-// }
-// 
-// impl<T: StorableId<T>> IntoResource<Record<T>> for Record<T> {
-//     fn into_resource(self) -> Result<Resource, surrealdb::Error> {
-//         let thinggy = self.as_thing();
-//         Ok(thinggy.into())
-//     }
-// }
-// 
-// impl<T: StorableId<T>> From<Thing> for Record<T> {
-//     fn from(thing: Thing) -> Self {
-//         Record::new(&thing.tb, &thing.id.to_raw(), None)
-//     }
-// }
+    pub fn into_inner_mut(&mut self) -> &mut Option<T> {
+        &mut self.data
+    }
+}
