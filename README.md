@@ -23,21 +23,39 @@ DB_SECRET is the password of the database.
 // Definition
 #[derive(Debug, Deserialize, Serialize, Clone)]
 struct Person {
+    id: SurrealID,
     name: String,
     age: u8,
 }
+/// Adds the .save() .select() .delete() methods to the object
+impl Storable for Person {}
 
-// Then Implement the `Storable` trait for the object
-// The `Storable` trait requires the `table` and `id` methods to be implemented
-// The `table` method returns the name of the table in the database
-// The `id` method returns the name of the id field in the database
-// The `Item` associated type is the type of the object being stored
-impl<'a> Storable<'a> for Person {}
-impl StorableId for Person {
+/// Debug + Serialize + DeserializeOwned + Sized + Clone
+impl DBThings for Person {}
+
+/// Indicates that the object has a SurrealID in the "id" field 
+impl HasSurrealIdentifier for Person {}
+/// Indicates that the object has data beside the id field
+impl SurrealData for Person {}
+
+impl SurrealIDIdent for Person {
     fn id(&self) -> String {
-        self.name.clone()
+        self.id.id()
     }
 }
+impl SurrealIDTable for Person {
+    fn table(&self) -> String {
+        self.id.table()
+    }
+}
+impl From<Record<Person>> for Person {
+    fn from(record: Record<Person>) -> Self {
+        let data = record.into_inner().unwrap();
+        data
+    }
+}
+
+// Then Implement the `Storable` trait for the object
 
 fn main() -> Result<(), SurrealError> {
     // Record To Database
@@ -51,3 +69,7 @@ fn main() -> Result<(), SurrealError> {
     Ok(())
 }
 ```
+
+
+Might be worth a look -> https://github.com/liamwh/surreal-id
+

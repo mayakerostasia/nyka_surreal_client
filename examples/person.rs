@@ -24,12 +24,12 @@ struct Person {
 impl Storable for Person {}
 impl SurrealIDIdent for Person {
     fn id(&self) -> String {
-        self.id.0.id.clone().to_raw()
+        self.id.id()
     }
 }
 impl SurrealIDTable for Person {
     fn table(&self) -> String {
-        self.id.0.tb.clone()
+        self.id.table()
     }
 }
 impl DBThings for Person {}
@@ -37,16 +37,10 @@ impl HasSurrealIdentifier for Person {}
 impl SurrealData for Person {}
 impl From<Record<Person>> for Person {
     fn from(record: Record<Person>) -> Self {
-        let id = SurrealID::new(
-            record.table().as_str(), 
-            Some(record.id().as_str())
-        );
-        println!("ID: {:?}", &id);
         let data = record.into_inner().unwrap();
         data
     }
 }
-
 
 // API Call or Factory
 fn person_factory(table: &str, id: &str, name: &str, age: u8) -> Option<Person> {
