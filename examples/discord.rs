@@ -1,7 +1,7 @@
-use surrealdb::sql::Thing;
 use serde::{Deserialize, Serialize};
 use surrealdb::engine::local::{Db, Mem};
 use surrealdb::sql::Id;
+use surrealdb::sql::Thing;
 use surrealdb::Surreal;
 
 #[tokio::main]

@@ -1,10 +1,10 @@
 // use nico_surreal_client::ident::{HasSurrealIdentifier, SurrealData};
 // use nico_surreal_client::{DBThings, SurrealID};
-// use nico_surreal_client::{Record, Storable, prelude::Thing, 
+// use nico_surreal_client::{Record, Storable, prelude::Thing,
 //     ident::{
 //         SurrealIDTable,
 //         SurrealIDIdent,
-//         SurrealIDFactory,    
+//         SurrealIDFactory,
 // }};
 // use serde::{Deserialize, Serialize};
 

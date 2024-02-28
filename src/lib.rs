@@ -1,23 +1,18 @@
 mod config;
 mod error;
-mod storable;
-mod record;
 mod ident;
+mod record;
+mod storable;
 
 use once_cell::sync::Lazy;
-use surrealdb::{
-    engine::any::Any,
-    Surreal,
-    Response
-};
+use surrealdb::{engine::any::Any, Response, Surreal};
 
 pub use error::Error;
 pub use ident::SurrealID;
+pub use ident::{HasSurrealIdentifier, SurrealData, SurrealIDIdent, SurrealIDTable};
 pub use record::Record;
-pub use storable::{ Storable, DBThings };
-pub use ident::{SurrealIDIdent, SurrealIDTable, SurrealData, HasSurrealIdentifier};
 pub use serde::{Deserialize, Serialize};
-
+pub use storable::{DBThings, Storable};
 
 static DB: Lazy<Surreal<Any>> = Lazy::new(Surreal::init);
 
@@ -33,29 +28,38 @@ pub mod prelude {
         delete_record,
         get_record,
         query,
+        DBThings,
+        Deserialize,
         Error,
-        DBThings, SurrealID, SurrealData, HasSurrealIdentifier, SurrealIDIdent, SurrealIDTable,
+        HasSurrealIdentifier,
         Record,
+        Serialize,
         Storable,
-        Serialize, Deserialize
+        SurrealData,
+        SurrealID,
+        SurrealIDIdent,
+        SurrealIDTable,
     };
 }
 
-
-
-pub async fn create_record<T>(
-    record: Record<T>,
-) -> Result<Vec<T>, Error>
+pub async fn create_record<T>(record: Record<T>) -> Result<Vec<T>, Error>
 where
-    T: HasSurrealIdentifier + SurrealData + DBThings + From<Record<T>>
+    T: HasSurrealIdentifier + SurrealData + DBThings + From<Record<T>>,
 {
-    let created: Vec<T> = DB.create(record.table()).content(record.data::<T>()).await?;
+    let created: Vec<T> = DB
+        .create(record.table())
+        .content(record.data::<T>())
+        .await?;
     Ok(created)
 }
 
-pub async fn updata_record<'a, T>(table: &str, id: &str, data: Option<T>) -> Result<Option<Record<T>>, Error>
+pub async fn updata_record<'a, T>(
+    table: &str,
+    id: &str,
+    data: Option<T>,
+) -> Result<Option<Record<T>>, Error>
 where
-    T: HasSurrealIdentifier + SurrealData + DBThings
+    T: HasSurrealIdentifier + SurrealData + DBThings,
 {
     let updated: Option<Record<T>>;
     if let Some(data) = data {
@@ -68,7 +72,7 @@ where
 
 pub async fn get_record<T>(table: &str, id: &str) -> Result<Option<Record<T>>, Error>
 where
-    T: HasSurrealIdentifier + DBThings
+    T: HasSurrealIdentifier + DBThings,
 {
     println!("Getting record: {:?}:{:?}", &table, &id);
 
@@ -89,7 +93,8 @@ where
 }
 
 pub async fn delete_record<T>(table: &str, id: &str) -> Result<T, Error>
-where T: HasSurrealIdentifier + DBThings
+where
+    T: HasSurrealIdentifier + DBThings,
 {
     let deleted: Option<T> = DB.delete((table, id)).await?;
     if let Some(deleted) = deleted {

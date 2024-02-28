@@ -1,15 +1,14 @@
-use serde::{Deserialize, Serialize};
-use std::fmt::Debug;
-use crate::ident::SurrealData;
 use crate::ident::HasSurrealIdentifier;
+use crate::ident::SurrealData;
 use crate::ident::SurrealIDFactory;
 use crate::ident::SurrealIDIdent;
 use crate::ident::SurrealIDTable;
 use crate::storable::DBThings;
 use crate::SurrealID;
+use serde::{Deserialize, Serialize};
+use std::fmt::Debug;
 
 use surrealdb::sql::{Id, Thing};
-
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(untagged)]
@@ -70,7 +69,7 @@ impl<T: DBThings> SurrealIDTable for Record<T> {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)] 
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct RecordIdData<T> {
     pub id: SurrealID,
     pub data: Option<T>,
@@ -78,7 +77,10 @@ pub struct RecordIdData<T> {
 
 impl<T> RecordIdData<T> {
     fn _new(id: SurrealID, data: T) -> Self {
-        RecordIdData { id, data: Some(data) }
+        RecordIdData {
+            id,
+            data: Some(data),
+        }
     }
 
     pub fn new(tb: &str, id: Option<Id>, data: T) -> Self {
@@ -98,7 +100,7 @@ impl<T> RecordIdData<T> {
         match id {
             Some(id) => RecordIdData {
                 id: SurrealID::from(Thing::from((tb, id.to_raw().as_str()))),
-                data: None
+                data: None,
             },
             None => RecordIdData {
                 id: SurrealID::from(Thing::from((tb, Id::rand().to_raw().as_str()))),

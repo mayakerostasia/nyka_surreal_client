@@ -10,8 +10,7 @@ use surrealdb::sql::{Id, Thing};
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct SurrealID(pub Thing);
 
-impl SurrealID
-{
+impl SurrealID {
     pub fn new(tb: &str, id: Option<&str>) -> Self {
         match id {
             Some(id) => SurrealID(Thing::from((tb, id))),
@@ -32,7 +31,8 @@ pub trait SurrealIDFactory {
 pub trait HasSurrealIdentifier: SurrealIDTable + SurrealIDIdent {}
 
 pub trait SurrealData
-where Self: Sized + Clone
+where
+    Self: Sized + Clone,
 {
     fn data<T: std::convert::From<Self>>(self) -> T {
         self.clone().try_into().unwrap()
@@ -88,7 +88,7 @@ impl From<SurrealID> for Thing {
 
 impl From<(String, String)> for SurrealID {
     fn from((tb, id): (String, String)) -> Self {
-        SurrealID ( Thing::from((tb, id)),)
+        SurrealID(Thing::from((tb, id)))
     }
 }
 
