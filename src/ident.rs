@@ -4,8 +4,9 @@ use std::{
     str::FromStr,
 };
 
+use std::collections::BTreeMap;
 use serde::{Deserialize, Serialize};
-use surrealdb::sql::{Id, Thing};
+use surrealdb::sql::{Id, Object, Thing, Value, Strand};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct SurrealID(pub Thing);
@@ -21,12 +22,29 @@ impl SurrealID {
 
 pub trait SurrealIDFactory {
     fn new(tb: &str, id: &str) -> SurrealID {
-        SurrealID(Thing::from((tb, id)))
+        SurrealID(Thing::from((tb, Id::from(id))))
     }
     fn random(tb: &str) -> SurrealID {
         SurrealID(Thing::from((tb, Id::rand().to_raw().as_str())))
     }
 }
+
+// impl From<SurrealID> for Object {
+//     fn from(ident: SurrealID) -> Self {
+//         let mut object = Object(BTreeMap::<String, Value>::new());
+//         object.insert("tb".to_string(), Value::Strand(Strand(ident.0.tb.clone()));
+//         // object.insert("id".to_string(), Id::(ident.0.id.clone()));
+//         object
+//     }
+// }
+
+// impl From<Object> for SurrealID {
+//     fn from(object: Object) -> Self {
+//         println!("{:?}", object.0);
+//         Self::from((object.0["tb"].clone(), object.0["id"].clone()))
+//         // object.0.into()
+//     }
+// }
 
 pub trait HasSurrealIdentifier: SurrealIDTable + SurrealIDIdent {}
 
@@ -42,13 +60,13 @@ pub trait SurrealIDTable {
     fn table(&self) -> String;
 }
 pub trait SurrealIDIdent {
-    fn id(&self) -> String;
+    fn id(&self) -> Id;
 }
 
 impl SurrealIDFactory for SurrealID {}
 impl SurrealIDIdent for SurrealID {
-    fn id(&self) -> String {
-        self.0.id.to_string()
+    fn id(&self) -> Id {
+        self.0.id.clone()
     }
 }
 impl SurrealIDTable for SurrealID {

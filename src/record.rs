@@ -53,10 +53,10 @@ impl<T: DBThings> SurrealData for Record<T> {}
 impl<T: DBThings> HasSurrealIdentifier for Record<T> {}
 impl<T: DBThings> DBThings for Record<T> {}
 impl<T: DBThings> SurrealIDIdent for Record<T> {
-    fn id(&self) -> String {
+    fn id(&self) -> Id {
         match &self {
             Record::RecordIdData(data) => data.id.id(),
-            Record::RecordId(id) => id.0.id.to_string(),
+            Record::RecordId(id) => id.0.id,
         }
     }
 }
