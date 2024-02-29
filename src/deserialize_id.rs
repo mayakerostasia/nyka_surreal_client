@@ -107,7 +107,7 @@ where
                                     break;
                                 }
                             };
-                            let sid: SurrealID = SurrealID::new(_table.as_str(), Some(_id.expect("Heree")));
+                            let sid: SurrealID = SurrealID::new("default", _id);
                             return Ok(sid)
                         },
                         (_,_) => { return Err(serde::de::Error::custom("No id")); },
