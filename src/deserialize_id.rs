@@ -114,12 +114,10 @@ mod tests {
         let mut btree: BTreeMap<String, Value> = BTreeMap::new();
         btree.extend(iter::once(("id".to_string(), Value::from("1"))));
         println!("{:?}", btree);
-        // panic!("Stopping here");
+        let thingy: Value = serde_json::to_value(btree).unwrap();
 
-        // let thing = Thing::from(("default", Id::from(1)));
-
-        let thingy = serde_json::to_value(btree).unwrap();
-        println!("{:?}", thingy);
+        let id: SurrealID = serde_json::from_value(thingy).unwrap();
+        println!("{:?}", id);
         // let id: SurrealID = serde_json::from_(json).unwrap();
         // assert_eq!(id.0.id, Id::String("1".to_string()));
 
