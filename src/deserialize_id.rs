@@ -61,18 +61,17 @@ where
                     match opt {
                         Some((key, mut val)) => {
                             info!("Key: {:#?} \n Val: {:#?}" , key, val);
-
-                            while let entry = val.swap_remove_entry("id") {
+                            loop {
+                                let entry = val.swap_remove_entry("id");
                                 if let Some(entry) = entry {
                                     match entry {
                                         (k, v) => { 
                                             info!("Key: {:#?} \n Val: {:#?}", k, v); 
-
-                                            _id = Some(Id::from(v.to_string()))
+                                            _id = Some(Id::from(v.to_string()));
+                                            break
                                         },
                                         _ => panic!("No entry")
-                                            
-                                        }
+                                    }
                                 }
                             };
                             let sid: SurrealID = SurrealID::new(key.as_str(), Some(_id.unwrap()));
