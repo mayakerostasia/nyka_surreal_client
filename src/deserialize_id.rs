@@ -1,4 +1,5 @@
 // use rs_autotask_api::debug;
+use rs_nico_tracing::info;
 use crate::SurrealID;
 use serde::Deserializer;
 use serde_json::Map;
@@ -49,14 +50,32 @@ where
             A: serde::de::MapAccess<'de>,
         {
             let _table: Option<(String, String)> = map.next_entry()?;
-            let id: (String, Map<String, Value>) = map.next_entry()?.unwrap();
+            info!("{:?}", _table);
+            let id: Option<(String, String)> = map.next_entry()?;
+            match id {
+                Some((key, val)) => { 
+                    info!("Key: {:#?} \n Val: {:#?}" , key, val);
+                    panic!()
+                },
+                None => info!("No id"),
+            }
 
-            let _id = id.1.get("Number").unwrap();
+            todo!();
+            // let _id = id.1.get("Number").unwrap();
 
-            let sid: SurrealID = SurrealID::new(_table.unwrap().1.as_str(), Some(Id::from(_id.to_string())));
-            Ok(sid)
+            // let sid: SurrealID = SurrealID::new(_table.unwrap().1.as_str(), Some(Id::from(_id.to_string())));
+            // Ok(sid)
         }
+
     }
 
     deserializer.deserialize_any(Visitor)
+}
+
+
+enum id_match {
+    String(String),
+    Int(i64),
+    U64(u64),
+    Map(Map<String, Value>),
 }
