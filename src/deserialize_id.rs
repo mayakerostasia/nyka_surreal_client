@@ -1,10 +1,12 @@
+use core::panic;
+
 // use rs_autotask_api::debug;
 use rs_nico_tracing::info;
 use crate::SurrealID;
 use serde::Deserializer;
 use serde_json::{Map, Value as JValue};
 use surrealdb::sql::{Id, Value};
-// use std::iter;
+use std::iter;
 // use crate::Id::Number;
 
 pub fn deserialize_id<'de, D>(deserializer: D) -> Result<SurrealID, D::Error>
@@ -89,12 +91,12 @@ where
                             let sid: SurrealID = SurrealID::new(key.as_str(), Some(_id.expect("Heree")));
                             return Ok(sid)
                         },
-                        None => info!("No id"),
+                        None => panic!("No Id"),
                     }
                     // info!("Key: {:#?} \n Val: {:#?}" , key, map);
                     // panic!()
                 },
-                Err(e) => info!("No id"),
+                Err(e) => panic!("No Id"),
             }
 
             // todo!();
@@ -112,7 +114,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use serde_json;
+    use serde_json::{self, Number};
     use serde_json::json;
     use surrealdb::sql::Object;
     use std::collections::BTreeMap;
@@ -121,10 +123,11 @@ mod tests {
     fn test_deserialize_id() {
         let json = "1";
         // Object::from(("id", "1"));
-        let mut btree: BTreeMap<String, Value> = BTreeMap::new();
-        btree.extend(iter::once(("id".to_string(), Value::from(Number(1)))));
+        let mut btree: BTreeMap<String, JValue> = BTreeMap::new();
+        btree.extend(iter::once(("id".to_string(), JValue::from(JValue::Number(Number::from(1))))));
         println!("{:?}", btree);
-        let thingy: Value = serde_json::to_value(btree).unwrap();
+        let thingy: JValue = serde_json::to_value(btree).unwrap();
+        println!("{:?}", thingy);
         let id: SurrealID = serde_json::from_value(thingy).unwrap();
         println!("{:?}", id);
         // let id: SurrealID = serde_json::from_(json).unwrap();
