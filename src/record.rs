@@ -28,6 +28,7 @@ impl<T: HasSurrealIdentifier> Record<T> {
     pub fn into_inner(self) -> Option<T> {
         match self {
             Record::RecordIdData(data) => data.data,
+            Record::RecordId(_id) => None,
             _ => unimplemented!(),
         }
     }
@@ -35,6 +36,7 @@ impl<T: HasSurrealIdentifier> Record<T> {
     pub fn into_inner_mut(&mut self) -> &mut Option<T> {
         match self {
             Record::RecordIdData(data) => &mut data.data,
+            Record::RecordId(_id) => panic!("Cannot mutate a RecordId"),
             _ => unimplemented!(),
         }
     }

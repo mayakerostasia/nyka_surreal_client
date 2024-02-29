@@ -55,12 +55,27 @@ where
             let id: Result<Option<(String, Map<String, Value>)>, _> = map.next_entry();
             info!("Id from de: {:?}", id);
 
+            let mut _id: Option<Id> = None;
             match id {
                 Ok(opt) => { 
                     match opt {
-                        Some((key, val)) => {
+                        Some((key, mut val)) => {
                             info!("Key: {:#?} \n Val: {:#?}" , key, val);
-                            let sid: SurrealID = SurrealID::new(key.as_str(), Some(Id::from(val.get("Number").unwrap().to_string())));
+
+                            while let entry = val.swap_remove_entry("id") {
+                                if let Some(entry) = entry {
+                                    match entry {
+                                        (k, v) => { 
+                                            info!("Key: {:#?} \n Val: {:#?}", k, v); 
+
+                                            _id = Some(Id::from(v.to_string()))
+                                        },
+                                        _ => panic!("No entry")
+                                            
+                                        }
+                                }
+                            };
+                            let sid: SurrealID = SurrealID::new(key.as_str(), Some(_id.unwrap()));
                             return Ok(sid)
                         },
                         None => info!("No id"),
