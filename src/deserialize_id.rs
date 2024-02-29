@@ -2,11 +2,10 @@
 use rs_nico_tracing::info;
 use crate::SurrealID;
 use serde::Deserializer;
-use serde_json::Map;
-use serde_json::Value;
-use surrealdb::sql::Id;
-use std::iter;
-use crate::Id::Number;
+use serde_json::{Map, Value as JValue};
+use surrealdb::sql::{Id, Value};
+// use std::iter;
+// use crate::Id::Number;
 
 pub fn deserialize_id<'de, D>(deserializer: D) -> Result<SurrealID, D::Error>
 where
@@ -54,25 +53,36 @@ where
             let _table: Option<(String, String)> = map.next_entry()?;
             info!("Table from de {:?}", _table);
 
-            let id: Result<Option<(String, Map<String, Value>)>, _> = map.next_entry();
+            let id: Option<(String, Map<String, JValue>)> = map.next_entry()?;
             info!("Id from de: {:?}", id);
 
             let mut _id: Option<Id> = None;
             match id {
-                Ok(opt) => { 
+                Some(opt) => { 
                     match opt {
-                        Some((key, mut val)) => {
-                            info!("Key: {:#?} \n Val: {:#?}" , key, val);
+                        (key, mut val) => {
+                            info!("Key: {:#?}", key);
                             loop {
-                                let entry = val.swap_remove_entry("id");
+                                let entry = val.get("id");
                                 if let Some(entry) = entry {
                                     match entry {
-                                        (k, v) => { 
-                                            info!("Key: {:#?} \n Val: {:#?}", k, v); 
-                                            _id = Some(Id::from(v.to_string()));
-                                            break
+                                        JValue::Number(num) => {
+                                            info!("Num: {:#?}", num);
+                                            let _num = num.as_i64();
+                                            if let Some(num) = _num {
+                                                _id = Some(Id::from(num));
+                                                break;
+                                            }
                                         },
-                                        _ => panic!("No entry")
+                                        JValue::String(s) => {
+                                            info!("String: {:#?}", s);
+                                            let _s = s.as_str();
+                                            if let s = _s {
+                                                _id = Some(Id::from(s));
+                                                break;
+                                            }
+                                        },
+                                        _ => info!("No id"),
                                     }
                                 }
                             };
@@ -112,10 +122,9 @@ mod tests {
         let json = "1";
         // Object::from(("id", "1"));
         let mut btree: BTreeMap<String, Value> = BTreeMap::new();
-        btree.extend(iter::once(("id".to_string(), Value::from("1"))));
+        btree.extend(iter::once(("id".to_string(), Value::from(Number(1)))));
         println!("{:?}", btree);
         let thingy: Value = serde_json::to_value(btree).unwrap();
-
         let id: SurrealID = serde_json::from_value(thingy).unwrap();
         println!("{:?}", id);
         // let id: SurrealID = serde_json::from_(json).unwrap();
