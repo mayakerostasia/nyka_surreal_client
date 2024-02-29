@@ -5,7 +5,6 @@ mod ident;
 mod record;
 mod storable;
 
-use deserialize_id::deserialize_id;
 use once_cell::sync::Lazy;
 use surrealdb::{engine::any::Any, Response, Surreal, sql::Id};
 
@@ -15,6 +14,7 @@ pub use ident::{HasSurrealIdentifier, SurrealData, SurrealIDIdent, SurrealIDTabl
 pub use record::Record;
 pub use serde::{Deserialize, Serialize};
 pub use storable::{DBThings, Storable};
+pub use deserialize_id::deserialize_id;
 
 static DB: Lazy<Surreal<Any>> = Lazy::new(Surreal::init);
 
