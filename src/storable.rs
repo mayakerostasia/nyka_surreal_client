@@ -17,14 +17,13 @@ where
     async fn save(self) -> Result<Vec<Self>, Error> {
         let _ = connect(None).await.ok();
 
-        let ret: Vec<Self> = create_record(Record::new(
+        let ret: Result<Vec<Self>, Error> = create_record(Record::new(
             self.table().as_str(),
             self.id(),
             Some(Box::new(self)),
         ))
-        .await
-        .expect("Whoops");
-        Ok(ret)
+        .await;
+        ret
     }
 
     async fn select(&self) -> Result<Option<Record<Self>>, Error> {
