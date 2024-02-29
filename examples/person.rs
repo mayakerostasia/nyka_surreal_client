@@ -23,7 +23,7 @@ struct Person {
 }
 impl Storable for Person {}
 impl SurrealIDIdent for Person {
-    fn id(&self) -> String {
+    fn id(&self) -> Id {
         self.id.id()
     }
 }

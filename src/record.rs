@@ -18,9 +18,9 @@ pub enum Record<T> {
 }
 
 impl<T: HasSurrealIdentifier> Record<T> {
-    pub fn new(tb: &str, id: &str, data: Option<Box<T>>) -> Self {
+    pub fn new(tb: &str, id: Id, data: Option<Box<T>>) -> Self {
         match data {
-            Some(data) => Record::RecordIdData(RecordIdData::new(tb, Some(id.into()), *data)),
+            Some(data) => Record::RecordIdData(RecordIdData::new(tb, Some(id), *data)),
             None => Record::RecordId(SurrealID::new(tb, Some(id))),
         }
     }
@@ -42,7 +42,7 @@ impl<T: HasSurrealIdentifier> Record<T> {
 
 impl<T: HasSurrealIdentifier> SurrealIDFactory for Record<T> {
     fn new(tb: &str, id: &str) -> SurrealID {
-        SurrealID::new(tb, Some(id))
+        SurrealID::new(tb, Some(Id::from(id)))
     }
     fn random(tb: &str) -> SurrealID {
         SurrealID::new(tb, None)
@@ -56,7 +56,7 @@ impl<T: DBThings> SurrealIDIdent for Record<T> {
     fn id(&self) -> Id {
         match &self {
             Record::RecordIdData(data) => data.id.id(),
-            Record::RecordId(id) => id.0.id,
+            Record::RecordId(id) => id.0.id.clone(),
         }
     }
 }

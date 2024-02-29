@@ -14,6 +14,7 @@ pub enum Error {
         database: String,
         table: String,
         id: String,
+        id_raw: String,
         // msg: surrealdb::Error
     },
 

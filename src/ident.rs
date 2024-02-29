@@ -4,15 +4,14 @@ use std::{
     str::FromStr,
 };
 
-use std::collections::BTreeMap;
 use serde::{Deserialize, Serialize};
-use surrealdb::sql::{Id, Object, Thing, Value, Strand};
+use surrealdb::sql::{Id, Thing};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct SurrealID(pub Thing);
 
 impl SurrealID {
-    pub fn new(tb: &str, id: Option<&str>) -> Self {
+    pub fn new(tb: &str, id: Option<Id>) -> Self {
         match id {
             Some(id) => SurrealID(Thing::from((tb, id))),
             None => SurrealID(Thing::from((tb, Id::rand().to_raw().as_str()))),

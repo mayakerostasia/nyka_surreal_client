@@ -5,7 +5,7 @@ mod record;
 mod storable;
 
 use once_cell::sync::Lazy;
-use surrealdb::{engine::any::Any, Response, Surreal};
+use surrealdb::{engine::any::Any, Response, Surreal, sql::Id};
 
 pub use error::Error;
 pub use ident::SurrealID;
@@ -20,6 +20,7 @@ static CONFIG: Lazy<config::DbConfig> = Lazy::new(config::setup);
 
 pub mod prelude {
     pub use surrealdb::sql::Thing;
+    pub use surrealdb::sql::Id;
 
     pub use super::{
         connect,
@@ -70,20 +71,25 @@ where
     Ok(updated)
 }
 
-pub async fn get_record<T>(table: &str, id: &str) -> Result<Option<Record<T>>, Error>
+pub async fn get_record<T>(table: &str, id: Id) -> Result<Option<Record<T>>, Error>
 where
     T: HasSurrealIdentifier + DBThings,
 {
-    println!("Getting record: {:?}:{:?}", &table, &id);
+    let _id = id.clone();
+    println!("Getting record: {:?}:{:?}", &table, &_id);
+    println!("Getting record: {:?}:{:?}", &table, &_id.to_raw());
+    println!("Getting record: {:?}:{:?}", &table, &_id.to_string());
+    println!("Getting record: {:?}:{:?}", &table, &_id.to_raw().to_string());
 
     let value: Result<Option<Record<T>>, Error> = DB
-        .select((table, id)) // Implement the IntoResource<T> trait for surrealdb::sql::Thing
+        .select((table, _id.clone())) // Implement the IntoResource<T> trait for surrealdb::sql::Thing
         .await
         .map_err(|_e| Error::NoRecordFound {
             namespace: CONFIG.ns.to_string(),
             database: CONFIG.db.to_string(),
             table: table.to_string(),
             id: id.to_string(),
+            id_raw: id.to_raw()
             // msg: e
         });
     println!("Got record: {:?}", &value);
@@ -92,11 +98,11 @@ where
     // todo!();
 }
 
-pub async fn delete_record<T>(table: &str, id: &str) -> Result<T, Error>
+pub async fn delete_record<T>(table: &str, id: Id) -> Result<T, Error>
 where
     T: HasSurrealIdentifier + DBThings,
 {
-    let deleted: Option<T> = DB.delete((table, id)).await?;
+    let deleted: Option<T> = DB.delete((table, id.to_raw())).await?;
     if let Some(deleted) = deleted {
         return Ok(deleted);
     } else {
@@ -105,6 +111,7 @@ where
             database: CONFIG.db.clone(),
             table: table.to_string(),
             id: id.to_string(),
+            id_raw: id.to_raw(),
             // msg: Err(surrealdb::err::Error::NoRecordFound).expect_err(msg),
         });
     }

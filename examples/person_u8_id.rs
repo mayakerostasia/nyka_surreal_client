@@ -18,7 +18,7 @@ struct Person {
 impl Storable for Person {}
 impl SurrealIDIdent for Person {
     fn id(&self) -> Id {
-        self.id.id().to_raw().to_string()
+        self.id.id()
     }
 }
 impl SurrealIDTable for Person {
@@ -31,7 +31,7 @@ impl HasSurrealIdentifier for Person {}
 impl SurrealData for Person {}
 impl From<Record<Person>> for Person {
     fn from(record: Record<Person>) -> Self {
-        let id = SurrealID::new(record.table().as_str(), Some(record.id().as_str()));
+        let id = record.id();
         println!("ID: {:?}", &id);
         let data = record.into_inner().unwrap();
         data
@@ -51,9 +51,9 @@ fn person_factory(table: &str, id: Id, name: &str, age: u8) -> Option<Person> {
 #[tokio::main]
 async fn main() -> Result<(), nico_surreal_client::Error> {
     // Record To Database
-    let john = person_factory(TEST_TABLE, Id::Number(1), "John", 32).unwrap();
+    let john = person_factory(TEST_TABLE, Id::from(1), "John", 32).unwrap();
     println!("Record John: {:?}", &john);
-    let _ = john.delete().await?;
+    let _ = john.delete().await;
 
     // let save_john = Record::from(john.clone());
     let saved_john = (&john).clone().save().await;

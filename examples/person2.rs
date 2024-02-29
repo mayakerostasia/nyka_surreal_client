@@ -8,21 +8,19 @@ const TEST_PERSON: &str = "test_person";
 #[allow(dead_code)]
 #[derive(Debug, Deserialize, Serialize, Clone)]
 struct Person {
-    id: String,
-    /// surrealdb::sql::Id
-    table: String,
+    id: SurrealID,
     name: String,
     age: u8,
 }
 impl Storable for Person {}
 impl SurrealIDIdent for Person {
-    fn id(&self) -> String {
-        self.id.to_string()
+    fn id(&self) -> Id {
+        self.id.id()
     }
 }
 impl SurrealIDTable for Person {
     fn table(&self) -> String {
-        self.table.clone()
+        self.id.table()
     }
 }
 impl DBThings for Person {}
@@ -30,7 +28,7 @@ impl HasSurrealIdentifier for Person {}
 impl SurrealData for Person {}
 impl From<Record<Person>> for Person {
     fn from(record: Record<Person>) -> Self {
-        let id = SurrealID::new(record.table().as_str(), Some(record.id().as_str()));
+        let id = SurrealID::new(record.table().as_str(), Some(record.id()));
         println!("ID: {:?}", &id);
         let data = record.into_inner().unwrap();
         data
@@ -38,10 +36,9 @@ impl From<Record<Person>> for Person {
 }
 
 // API Call or Factory
-fn person_factory(table: &str, id: &str, name: &str, age: u8) -> Option<Person> {
+fn person_factory(table: &str, id: Id, name: &str, age: u8) -> Option<Person> {
     Some(Person {
-        id: id.to_string(),
-        table: table.to_string(),
+        id: SurrealID(Thing::from((table, id))),
         name: name.to_string(),
         age: age,
     })
@@ -50,14 +47,15 @@ fn person_factory(table: &str, id: &str, name: &str, age: u8) -> Option<Person> 
 #[tokio::main]
 async fn main() -> Result<(), nico_surreal_client::Error> {
     // Record To Database
-    let john = person_factory(TEST_TABLE, "one", "John", 32).unwrap();
+    let john = person_factory(TEST_TABLE, Id::from(1), "John", 32).unwrap();
     println!("Record John: {:?}", &john);
-    let _ = &john.delete().await;
+    let _ = john.delete().await?;
 
     // let save_john = Record::from(john.clone());
-    let saved_john = (&john).clone().save().await;
-    let selected_john = &john.select().await?;
-    let deleted_john = &john.delete().await?;
+    let saved_john = john.clone().save().await;
+
+    let selected_john = john.select().await?;
+    let deleted_john = john.delete().await?;
 
     // Some Logging
     println!("Created -> Yes");
