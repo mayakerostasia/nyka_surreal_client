@@ -1,9 +1,11 @@
 use core::panic;
+use std::fmt::Error;
 
 // use rs_autotask_api::debug;
 use rs_nico_tracing::info;
 use crate::SurrealID;
 use serde::Deserializer;
+use serde::de::MapAccess;
 use serde_json::{Map, Value as JValue};
 use surrealdb::sql::{Id, Value};
 use std::iter;
@@ -19,13 +21,14 @@ where
         type Value = SurrealID;
 
         fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
-            formatter.write_str("an i64 or a map")
+            formatter.write_str("well shit bitch... someone went and shit in my oven")
         }
 
         fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
         where
             E: serde::de::Error,
         {
+            println!("Here at string");
             let str_val = value.parse::<String>().expect("In string");
             // Check for `:` in the string
             // TODO:
@@ -36,6 +39,7 @@ where
         where
             E: serde::de::Error,
         {
+            println!("Here at i64"); 
             let sid: SurrealID = SurrealID::new("default", Some(Id::from(value as i64)));
             Ok(sid)
         }
@@ -44,6 +48,7 @@ where
         where
             E: serde::de::Error,
         {
+            println!("Here at u64");
             let sid: SurrealID = SurrealID::new("default", Some(Id::from(value as u64)));
             Ok(sid)
         }
@@ -56,7 +61,8 @@ where
             info!("Table from de {:?}", _table);
 
             let id: Option<(String, Map<String, JValue>)> = map.next_entry()?;
-            info!("Id from de: {:?}", id);
+            // info!("Id from de: {}", id);
+            todo!();
 
             let mut _id: Option<Id> = None;
             match id {
@@ -64,45 +70,59 @@ where
                     match opt {
                         (key, mut val) => {
                             info!("Key: {:#?}", key);
+                            // Value::from(val);
+                            // _id = Some(Id::from(val));
                             loop {
                                 let entry = val.get("id");
                                 if let Some(entry) = entry {
                                     match entry {
-                                        JValue::Number(num) => {
-                                            info!("Num: {:#?}", num);
-                                            let _num = num.as_i64();
-                                            if let Some(num) = _num {
-                                                _id = Some(Id::from(num));
-                                                break;
-                                            }
+                                        JValue::Array(arr) => {
+                                            info!("Array: {:#?}", arr);
+                                            unimplemented!();
+                                            // _id = Some(Id::Array(arr));
                                         },
-                                        JValue::String(s) => {
-                                            info!("String: {:#?}", s);
-                                            let _s = s.as_str();
-                                            if let s = _s {
-                                                _id = Some(Id::from(s));
-                                                break;
-                                            }
+                                        JValue::Bool(boole)  => {
+                                            info!("Bool: {:#?}", boole);
+                                            unimplemented!();
                                         },
-                                        _ => info!("No id"),
+                                        JValue::Number(num)  => {
+                                            info!("Number: {:#?}", num);
+                                            _id = Some(Id::Number(num.as_i64().expect("Here")));
+                                        },
+                                        JValue::Object(obj)  => {
+                                            info!("Object: {:#?}", obj);
+                                            unimplemented!()
+                                        },
+                                        JValue::String(str) => {
+                                            info!("String: {:#?}", str);
+                                            _id = Some(Id::String(str.as_str().to_string()));
+                                        },
+                                        JValue::Null => {
+                                            info!("Null: {:#?}", "Null");
+                                            unimplemented!();
+                                        },
                                     }
+                                } else {
+                                    info!("No id");
+                                    break;
                                 }
                             };
                             let sid: SurrealID = SurrealID::new(key.as_str(), Some(_id.expect("Heree")));
                             return Ok(sid)
                         },
-                        None => panic!("No Id"),
+                        (_,_) => { return Err(serde::de::Error::custom("No id")); },
+                        _ => return Err(serde::de::Error::custom("No id")),
                     }
+                    // return Ok(SurrealID::from(("default", _id.expect).as_str()));
                     // info!("Key: {:#?} \n Val: {:#?}" , key, map);
-                    // panic!()
                 },
-                Err(e) => panic!("No Id"),
+                None => { return Err(serde::de::Error::custom("No id")); },
             }
 
             // todo!();
 
-            let sid: SurrealID = SurrealID::new(_table.expect("Now down here").1.as_str(), _id);
-            Ok(sid)
+            // let sid: SurrealID = SurrealID::new(_table.expect("Now down here").1.as_str(), _id);
+            // Ok(SurrealID::from(("default", _id.expect("fuck"))))
         }
 
     }
@@ -117,19 +137,30 @@ mod tests {
     use serde_json::{self, Number};
     use serde_json::json;
     use surrealdb::sql::Object;
-    use std::collections::BTreeMap;
+    use std::collections::{BTreeMap, HashMap, HashSet};
+    use surrealdb::sql::Thing;
 
     #[test]
-    fn test_deserialize_id() {
+    fn test_deserialize_id() -> Result<(), serde_json::Error> {
         let json = "1";
-        // Object::from(("id", "1"));
-        let mut btree: BTreeMap<String, JValue> = BTreeMap::new();
-        btree.extend(iter::once(("id".to_string(), JValue::from(JValue::Number(Number::from(1))))));
-        println!("{:?}", btree);
-        let thingy: JValue = serde_json::to_value(btree).unwrap();
-        println!("{:?}", thingy);
-        let id: SurrealID = serde_json::from_value(thingy).unwrap();
-        println!("{:?}", id);
+        let hm: HashMap<String, Value> = HashMap::from([("id".to_string(), Value::from("1".to_string()))]);
+        let obj = Object::from(hm);
+        let mut btree: BTreeMap<String, Value> = BTreeMap::new();
+        btree.extend(iter::once(("id".to_string(), Value::Object(obj))));
+        println!("BTree Is {:?}", btree);
+        let thingy: Value = Value::Object(Object(btree));
+        println!("Thingy is {:?}", thingy);
+        // let as_sdb_value: SurrealID = Thing::from(btree);
+        // println!("SDB_val = {:?}", as_sdb_value);
+        // let sid = SurrealID(Thing::from(as_sdb_value));
+        // let _sid = match sid {
+
+
+        // }
+        // let id: SurrealID = serde_json::from_value(thingy);
+        // println!("{:?}", sid);
+        // let id: SurrealID = serde_json::from_value(thingy).unwrap();
+        // println!("{:?}", id);
         // let id: SurrealID = serde_json::from_(json).unwrap();
         // assert_eq!(id.0.id, Id::String("1".to_string()));
 
@@ -152,6 +183,7 @@ mod tests {
         // let json = r#"{"table": "default", "id": "1", "name": "test"}"#;
         // let id: SurrealID = serde_json::from_str(json).unwrap();
         // assert_eq!(id.0.id, Id::String("1".to_string()));
+        Ok(())
     }
 }
 //     }
