@@ -61,7 +61,7 @@ where
             info!("Table from de {:?}", _table);
 
             let id: Option<(String, Map<String, JValue>)> = map.next_entry()?;
-            info!("Id from de: {}", id);
+            // info!("Id from de: {}", id);
             // todo!();
 
             let mut _id: Option<Id> = None;
