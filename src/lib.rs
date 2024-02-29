@@ -23,6 +23,8 @@ static CONFIG: Lazy<config::DbConfig> = Lazy::new(config::setup);
 pub mod prelude {
     pub use surrealdb::sql::Thing;
     pub use surrealdb::sql::Id;
+    pub use surrealdb::sql::Value;
+    pub use surrealdb::Error as SDBError;
 
     pub use super::{
         connect,
