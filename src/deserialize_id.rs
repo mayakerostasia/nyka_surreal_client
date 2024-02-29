@@ -50,14 +50,25 @@ where
             A: serde::de::MapAccess<'de>,
         {
             let _table: Option<(String, String)> = map.next_entry()?;
-            info!("{:?}", _table);
-            let id: Option<(String, String)> = map.next_entry()?;
+            info!("Table from de {:?}", _table);
+
+            let id: Result<Option<(String, Map<String, Value>)>, _> = map.next_entry();
+            info!("Id from de: {:?}", id);
+
             match id {
-                Some((key, val)) => { 
-                    info!("Key: {:#?} \n Val: {:#?}" , key, val);
-                    panic!()
+                Ok(opt) => { 
+                    match opt {
+                        Some((key, val)) => {
+                            info!("Key: {:#?} \n Val: {:#?}" , key, val);
+                            let sid: SurrealID = SurrealID::new(key.as_str(), Some(Id::from(val.get("Number").unwrap().to_string())));
+                            return Ok(sid)
+                        },
+                        None => info!("No id"),
+                    }
+                    // info!("Key: {:#?} \n Val: {:#?}" , key, map);
+                    // panic!()
                 },
-                None => info!("No id"),
+                Err(e) => info!("No id"),
             }
 
             todo!();
@@ -72,10 +83,4 @@ where
     deserializer.deserialize_any(Visitor)
 }
 
-
-enum id_match {
-    String(String),
-    Int(i64),
-    U64(u64),
-    Map(Map<String, Value>),
-}
+struct Wrapped(Option<SurrealID>);
