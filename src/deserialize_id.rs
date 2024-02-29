@@ -5,6 +5,8 @@ use serde::Deserializer;
 use serde_json::Map;
 use serde_json::Value;
 use surrealdb::sql::Id;
+use std::iter;
+use crate::Id::Number;
 
 pub fn deserialize_id<'de, D>(deserializer: D) -> Result<SurrealID, D::Error>
 where
@@ -23,7 +25,7 @@ where
         where
             E: serde::de::Error,
         {
-            let str_val = value.parse::<String>().unwrap();;
+            let str_val = value.parse::<String>().expect("In string");
             // Check for `:` in the string
             // TODO:
             Ok(SurrealID::from(("default".to_string(), str_val)))
@@ -74,7 +76,7 @@ where
                                     }
                                 }
                             };
-                            let sid: SurrealID = SurrealID::new(key.as_str(), Some(_id.unwrap()));
+                            let sid: SurrealID = SurrealID::new(key.as_str(), Some(_id.expect("Heree")));
                             return Ok(sid)
                         },
                         None => info!("No id"),
@@ -85,11 +87,10 @@ where
                 Err(e) => info!("No id"),
             }
 
-            todo!();
-            // let _id = id.1.get("Number").unwrap();
+            // todo!();
 
-            // let sid: SurrealID = SurrealID::new(_table.unwrap().1.as_str(), Some(Id::from(_id.to_string())));
-            // Ok(sid)
+            let sid: SurrealID = SurrealID::new(_table.expect("Now down here").1.as_str(), _id);
+            Ok(sid)
         }
 
     }
@@ -97,4 +98,71 @@ where
     deserializer.deserialize_any(Visitor)
 }
 
-struct Wrapped(Option<SurrealID>);
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json;
+    use serde_json::json;
+    use surrealdb::sql::Object;
+    use std::collections::BTreeMap;
+
+    #[test]
+    fn test_deserialize_id() {
+        let json = "1";
+        // Object::from(("id", "1"));
+        let mut btree: BTreeMap<String, Value> = BTreeMap::new();
+        btree.extend(iter::once(("id".to_string(), Value::from("1"))));
+        println!("{:?}", btree);
+        // panic!("Stopping here");
+
+        // let thing = Thing::from(("default", Id::from(1)));
+
+        let thingy = serde_json::to_value(btree).unwrap();
+        println!("{:?}", thingy);
+        // let id: SurrealID = serde_json::from_(json).unwrap();
+        // assert_eq!(id.0.id, Id::String("1".to_string()));
+
+        // let json = r#"1"#;
+        // let id: SurrealID = serde_json::from_str(json).unwrap();
+        // assert_eq!(id.0.id, Id::String("1".to_string()));
+
+        // let json = r#"{"table": "default", "id": 1}"#;
+        // let id: SurrealID = serde_json::from_str(json).unwrap();
+        // assert_eq!(id.0.id, Id::String("1".to_string()));
+
+        // let json = r#"{"table": "default", "id": "1"}"#;
+        // let id: SurrealID = serde_json::from_str(json).unwrap();
+        // assert_eq!(id.0.id, Id::String("1".to_string()));
+
+        // let json = r#"{"table": "default", "id": 1, "name": "test"}"#;
+        // let id: SurrealID = serde_json::from_str(json).unwrap();
+        // assert_eq!(id.0.id, Id::String("1".to_string()));
+
+        // let json = r#"{"table": "default", "id": "1", "name": "test"}"#;
+        // let id: SurrealID = serde_json::from_str(json).unwrap();
+        // assert_eq!(id.0.id, Id::String("1".to_string()));
+    }
+}
+//     }
+// }
+// Compare this snippet from src/record_id_data.rs:
+// use crate::ident::HasSurrealIdentifier;
+// use crate::ident::SurrealData;
+// use crate::prelude::*;
+// use crate::Error;
+// use async_trait::async_trait;
+// use serde::{de::DeserializeOwned, Serialize};
+// use std::fmt::Debug;
+// use std::pin::Pin;
+// 
+// pub struct RecordIdData<T> {
+//     pub id: SurrealID,
+//     pub table: String,
+//     pub data: Option<Box<T>>,
+// }
+// 
+// impl<T: HasSurrealIdentifier> RecordIdData<T> {
+//     pub fn new(tb: &str, id: Option<Id>, data: Box<T>) -> Self {
+//         let id = SurrealID::new(tb, id);
+//         Self
