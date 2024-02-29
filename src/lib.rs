@@ -1,9 +1,11 @@
+mod deserialize_id;
 mod config;
 mod error;
 mod ident;
 mod record;
 mod storable;
 
+use deserialize_id::deserialize_id;
 use once_cell::sync::Lazy;
 use surrealdb::{engine::any::Any, Response, Surreal, sql::Id};
 
@@ -29,6 +31,7 @@ pub mod prelude {
         delete_record,
         get_record,
         query,
+        deserialize_id,
         DBThings,
         Deserialize,
         Error,
