@@ -73,3 +73,4 @@ fn main() -> Result<(), SurrealError> {
 
 Might be worth a look -> https://github.com/liamwh/surreal-id
 
+# Surreal Client, by Nico
