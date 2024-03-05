@@ -1,5 +1,9 @@
-/logs
 /target
+/logs
+/data
+/.vscode
+
+**scratch**
+
 .env
-.vscode
-_scratch
+.env.**
