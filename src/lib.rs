@@ -33,6 +33,7 @@ pub mod prelude {
     pub use surrealdb::Error as SDBError;
 
     pub use super::{
+        config::{ setup, DbConfig },
         check_connect,
         connect,
         create_record,
