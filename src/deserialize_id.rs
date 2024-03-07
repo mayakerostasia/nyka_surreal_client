@@ -116,7 +116,6 @@ mod tests {
 
     #[test]
     fn test_deserialize_id() -> Result<(), serde_json::Error> {
-        let json = "1";
         let hm: HashMap<String, Value> =
             HashMap::from([("id".to_string(), Value::from("1".to_string()))]);
         let obj = Object::from(hm);

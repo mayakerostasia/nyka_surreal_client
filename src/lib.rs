@@ -15,6 +15,7 @@ use once_cell::sync::Lazy;
 pub use record::Record;
 pub use serde::{Deserialize, Serialize};
 pub use storable::{DBThings, Storable};
+use surrealdb::opt::auth::Root;
 use surrealdb::{
     engine::any::Any,
     opt::auth::{Database, Jwt},
@@ -140,18 +141,17 @@ pub async fn query(query: &str) -> Result<Response, Error> {
 
 pub async fn connect<'a>(config: config::DbConfig) -> Result<(), Error> {
     DB.connect(&config.path).await?;
+    // let guard = DBGuard::new(
+    //     DB.signin(Database {
+    //         namespace: &config.ns,
+    //         database: &config.db,
+    //         username: &config.user,
+    //         password: &config.secret,
+    //     })
+    //     .await?,
+    // );
 
-    let guard = DBGuard::new(
-        DB.signin(Database {
-            namespace: &config.ns,
-            database: &config.db,
-            username: &config.user,
-            password: &config.secret,
-        })
-        .await?,
-    );
-
-    DB.authenticate(guard.token()).await?;
+    // DB.authenticate(guard.token()).await?;
 
     DB.use_ns(&CONFIG.ns).use_db(&CONFIG.db).await?;
     Ok(())
@@ -160,12 +160,11 @@ pub async fn connect<'a>(config: config::DbConfig) -> Result<(), Error> {
 pub async fn check_connect<'a>() -> Result<(), Error> {
     let health = DB.health().await;
     match health {
-        Ok(_) => (),
-        Err(_) => {
+        // Ok(_) => (),
+        // Err(_) => {
+        _ => {
             DB.connect(&CONFIG.path).await?;
-            DB.signin(Database {
-                namespace: &CONFIG.ns,
-                database: &CONFIG.db,
+            DB.signin(Root {
                 username: &CONFIG.user,
                 password: &CONFIG.secret,
             })
