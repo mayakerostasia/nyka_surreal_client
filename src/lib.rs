@@ -1,41 +1,46 @@
-mod deserialize_id;
 mod config;
+mod creds;
+mod deserialize_id;
 mod error;
 mod ident;
 mod record;
 mod storable;
-mod creds;
 
 // use creds::Credentials;
-use once_cell::sync::Lazy;
-use surrealdb::{engine::any::Any, opt::auth::{ Database, Jwt, Signin }, sql::Id, Response, Surreal};
-
+pub use deserialize_id::deserialize_id;
 pub use error::Error;
 pub use ident::SurrealID;
 pub use ident::{HasSurrealIdentifier, SurrealData, SurrealIDIdent, SurrealIDTable};
+use once_cell::sync::Lazy;
 pub use record::Record;
 pub use serde::{Deserialize, Serialize};
 pub use storable::{DBThings, Storable};
-pub use deserialize_id::deserialize_id;
+use surrealdb::{
+    engine::any::Any,
+    opt::auth::{Database, Jwt},
+    sql::Id,
+    Response, Surreal,
+};
 
 static DB: Lazy<Surreal<Any>> = Lazy::new(Surreal::init);
 
 static CONFIG: Lazy<config::DbConfig> = Lazy::new(config::setup);
 
 pub mod prelude {
-    pub use surrealdb::sql::Thing;
     pub use surrealdb::sql::Id;
+    pub use surrealdb::sql::Thing;
     pub use surrealdb::sql::Value;
     pub use surrealdb::Error as SDBError;
 
     pub use super::{
         check_connect,
+        connect,
         create_record,
         // update_record,
         delete_record,
+        deserialize_id,
         get_record,
         query,
-        deserialize_id,
         DBThings,
         Deserialize,
         Error,
@@ -86,7 +91,11 @@ where
     println!("Getting record: {:?}:{:?}", &table, &_id);
     println!("Getting record: {:?}:{:?}", &table, &_id.to_raw());
     println!("Getting record: {:?}:{:?}", &table, &_id.to_string());
-    println!("Getting record: {:?}:{:?}", &table, &_id.to_raw().to_string());
+    println!(
+        "Getting record: {:?}:{:?}",
+        &table,
+        &_id.to_raw().to_string()
+    );
 
     let value: Result<Option<Record<T>>, Error> = DB
         .select((table, _id.clone())) // Implement the IntoResource<T> trait for surrealdb::sql::Thing
@@ -96,8 +105,7 @@ where
             database: CONFIG.db.to_string(),
             table: table.to_string(),
             id: id.to_string(),
-            id_raw: id.to_raw()
-            // msg: e
+            id_raw: id.to_raw(), // msg: e
         });
     println!("Got record: {:?}", &value);
 
@@ -129,13 +137,19 @@ pub async fn query(query: &str) -> Result<Response, Error> {
     Ok(results)
 }
 
-pub async fn connect<'a>(address: Option<&str>, creds: impl surrealdb::opt::auth::Credentials<Signin, Jwt>) -> Result<(), Error> {
-    let addr = match address {
-        Some(addr) => addr,
-        None => &CONFIG.path,
-    };
-    DB.connect(addr).await?;
-    let guard = DBGuard::new(DB.signin(creds).await?);
+pub async fn connect<'a>(config: config::DbConfig) -> Result<(), Error> {
+    DB.connect(&config.path).await?;
+
+    let guard = DBGuard::new(
+        DB.signin(Database {
+            namespace: &config.ns,
+            database: &config.db,
+            username: &config.user,
+            password: &config.secret,
+        })
+        .await?,
+    );
+
     DB.authenticate(guard.token()).await?;
 
     DB.use_ns(&CONFIG.ns).use_db(&CONFIG.db).await?;
@@ -153,7 +167,8 @@ pub async fn check_connect<'a>() -> Result<(), Error> {
                 database: &CONFIG.db,
                 username: &CONFIG.user,
                 password: &CONFIG.secret,
-            }).await?;
+            })
+            .await?;
             DB.use_ns(&CONFIG.ns).use_db(&CONFIG.db).await?;
         }
     };

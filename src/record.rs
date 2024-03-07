@@ -1,3 +1,8 @@
+use std::fmt::Debug;
+
+use serde::{Deserialize, Serialize};
+use surrealdb::sql::{Id, Thing};
+
 use crate::ident::HasSurrealIdentifier;
 use crate::ident::SurrealData;
 use crate::ident::SurrealIDFactory;
@@ -5,10 +10,6 @@ use crate::ident::SurrealIDIdent;
 use crate::ident::SurrealIDTable;
 use crate::storable::DBThings;
 use crate::SurrealID;
-use serde::{Deserialize, Serialize};
-use std::fmt::Debug;
-
-use surrealdb::sql::{Id, Thing};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(untagged)]
