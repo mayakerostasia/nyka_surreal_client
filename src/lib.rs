@@ -6,6 +6,7 @@ mod ident;
 mod record;
 mod storable;
 
+use config::DbConfig;
 // use creds::Credentials;
 pub use deserialize_id::deserialize_id;
 pub use error::Error;
@@ -25,7 +26,7 @@ use surrealdb::{
 
 static DB: Lazy<Surreal<Any>> = Lazy::new(Surreal::init);
 
-static CONFIG: Lazy<config::DbConfig> = Lazy::new(config::setup);
+// static CONFIG: Lazy<config::DbConfig> = Lazy::new(config::setup);
 
 pub mod prelude {
     pub use surrealdb::sql::Id;
@@ -35,7 +36,6 @@ pub mod prelude {
 
     pub use super::{
         config::{ setup, DbConfig },
-        check_connect,
         connect,
         create_record,
         // update_record,
@@ -103,8 +103,6 @@ where
         .select((table, _id.clone())) // Implement the IntoResource<T> trait for surrealdb::sql::Thing
         .await
         .map_err(|_e| Error::NoRecordFound {
-            namespace: CONFIG.ns.to_string(),
-            database: CONFIG.db.to_string(),
             table: table.to_string(),
             id: id.to_string(),
             id_raw: id.to_raw(), // msg: e
@@ -124,8 +122,6 @@ where
         Ok(deleted)
     } else {
         Err(Error::NoRecordFound {
-            namespace: CONFIG.ns.clone(),
-            database: CONFIG.db.clone(),
             table: table.to_string(),
             id: id.to_string(),
             id_raw: id.to_raw(),
@@ -139,39 +135,14 @@ pub async fn query(query: &str) -> Result<Response, Error> {
     Ok(results)
 }
 
-pub async fn connect<'a>(config: config::DbConfig) -> Result<(), Error> {
+pub async fn connect<'a>(config: &'a config::DbConfig) -> Result<(), Error> {
     DB.connect(&config.path).await?;
-    // let guard = DBGuard::new(
-    //     DB.signin(Database {
-    //         namespace: &config.ns,
-    //         database: &config.db,
-    //         username: &config.user,
-    //         password: &config.secret,
-    //     })
-    //     .await?,
-    // );
+    DB.signin(Root {
+        username: &config.user,
+        password: &config.secret,
+    });
 
-    // DB.authenticate(guard.token()).await?;
-
-    DB.use_ns(&CONFIG.ns).use_db(&CONFIG.db).await?;
-    Ok(())
-}
-
-pub async fn check_connect<'a>() -> Result<(), Error> {
-    let health = DB.health().await;
-    match health {
-        // Ok(_) => (),
-        // Err(_) => {
-        _ => {
-            DB.connect(&CONFIG.path).await?;
-            DB.signin(Root {
-                username: &CONFIG.user,
-                password: &CONFIG.secret,
-            })
-            .await?;
-            DB.use_ns(&CONFIG.ns).use_db(&CONFIG.db).await?;
-        }
-    };
+    DB.use_ns(&config.ns).use_db(&config.db).await?;
     Ok(())
 }
 

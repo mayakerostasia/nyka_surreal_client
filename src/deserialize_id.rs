@@ -18,16 +18,16 @@ where
             formatter.write_str("well shit bitch... someone went and shit in my oven")
         }
 
-        fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
-        where
-            E: serde::de::Error,
-        {
-            println!("Here at string");
-            let str_val = value.parse::<String>().expect("In string");
-            // Check for `:` in the string
-            // TODO:
-            Ok(SurrealID::from(("default".to_string(), str_val)))
-        }
+        // fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
+        // where
+        //     E: serde::de::Error,
+        // {
+        //     println!("Here at string");
+        //     let str_val = value.parse::<String>().expect("In string");
+        //     // Check for `:` in the string
+        //     // TODO:
+        //     Ok(SurrealID::from(("default".to_string(), str_val)))
+        // }
 
         fn visit_i64<E>(self, value: i64) -> Result<Self::Value, E>
         where

@@ -8,10 +8,8 @@ pub enum Error {
     #[error("Please set the \n DB_PATH, \n DB_NS, DB_DB, \n DB_USER, and \n DB_SECRET \n environment variables")]
     EnvError,
 
-    #[error("DB No Record Found: \n NS: {namespace:#?} \n DB: {database:#?} \n Table: {table:#?} \n ID: {id:#?} \n")]
+    #[error("DB No Record Found: \n Table: {table:#?} \n ID: {id:#?} \n")]
     NoRecordFound {
-        namespace: String,
-        database: String,
         table: String,
         id: String,
         id_raw: String,

@@ -16,8 +16,8 @@ pub trait Storable
 where
     Self: DBThings + HasSurrealIdentifier + SurrealData + From<Record<Self>>,
 {
-    async fn save(self) -> Result<Vec<Self>, Error> {
-        let _ = check_connect().await.ok();
+    async fn save(self, config: &DbConfig) -> Result<Vec<Self>, Error> {
+        let _ = connect(config).await.ok();
 
         let ret: Result<Vec<Self>, Error> = create_record(Record::new(
             self.table().as_str(),
@@ -28,14 +28,14 @@ where
         ret
     }
 
-    async fn select(&self) -> Result<Option<Record<Self>>, Error> {
-        let _ = check_connect().await.ok();
+    async fn select(&self, config: &DbConfig) -> Result<Option<Record<Self>>, Error> {
+        let _ = connect(config).await.ok();
         let rec: Option<Record<Self>> = get_record(self.table().as_str(), self.id()).await?;
         Ok(rec)
     }
 
-    async fn delete(&self) -> Result<Pin<Box<Self>>, Error> {
-        let _ = check_connect().await.ok();
+    async fn delete(&self, config: &DbConfig) -> Result<Pin<Box<Self>>, Error> {
+        let _ = connect(config).await.ok();
         let rec: Result<Self, Error> = delete_record(self.table().as_str(), self.id()).await;
         match rec {
             Ok(rec) => Ok(Box::pin(rec)),
