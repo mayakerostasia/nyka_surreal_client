@@ -137,10 +137,10 @@ pub async fn query(query: &str) -> Result<Response, Error> {
 
 pub async fn connect<'a>(config: &'a config::DbConfig) -> Result<(), Error> {
     DB.connect(&config.path).await?;
-    DB.signin(Root {
+    let result = DB.signin(Root {
         username: &config.user,
         password: &config.secret,
-    });
+    }).await?;
 
     DB.use_ns(&config.ns).use_db(&config.db).await?;
     Ok(())
