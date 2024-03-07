@@ -2646,7 +2646,7 @@ checksum = "cbf4a6aa5f6d6888f39e980649f3ad6b666acdce1d78e95b8a2cb076e687ae30"
 [[package]]
 name = "rs-nico-tracing"
 version = "0.2.0"
-source = "git+git+ssh://git@github.com/BlueBastion/DEV-rs-nico-tracing.git?rev=v0.2.1#f0fb69b51d8b4d6ba20e447084fd9acb0f6a3274"
+source = "git+git+ssh://git@github.com/BlueBastion/DEV-rs-nico-tracing.git#97741c8d5856ed0aac55e65aaad5532c57d2b389"
 dependencies = [
  "color-eyre",
  "lazy_static",
