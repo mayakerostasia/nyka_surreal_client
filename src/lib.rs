@@ -4,9 +4,11 @@ mod error;
 mod ident;
 mod record;
 mod storable;
+mod creds;
 
+// use creds::Credentials;
 use once_cell::sync::Lazy;
-use surrealdb::{engine::any::Any, Response, Surreal, sql::Id};
+use surrealdb::{engine::any::Any, opt::auth::{ Database, Jwt, Signin }, sql::Id, Response, Surreal};
 
 pub use error::Error;
 pub use ident::SurrealID;
@@ -27,7 +29,7 @@ pub mod prelude {
     pub use surrealdb::Error as SDBError;
 
     pub use super::{
-        connect,
+        check_connect,
         create_record,
         // update_record,
         delete_record,
@@ -127,21 +129,55 @@ pub async fn query(query: &str) -> Result<Response, Error> {
     Ok(results)
 }
 
-pub async fn connect(address: Option<&str>) -> Result<(), Error> {
+pub async fn connect<'a>(address: Option<&str>, creds: impl surrealdb::opt::auth::Credentials<Signin, Jwt>) -> Result<(), Error> {
+    let addr = match address {
+        Some(addr) => addr,
+        None => &CONFIG.path,
+    };
+    DB.connect(addr).await?;
+    let guard = DBGuard::new(DB.signin(creds).await?);
+    DB.authenticate(guard.token()).await?;
+
+    DB.use_ns(&CONFIG.ns).use_db(&CONFIG.db).await?;
+    Ok(())
+}
+
+pub async fn check_connect<'a>() -> Result<(), Error> {
     let health = DB.health().await;
     match health {
         Ok(_) => (),
         Err(_) => {
-            let addr = match address {
-                Some(addr) => addr,
-                None => &CONFIG.path,
-            };
-            DB.connect(addr).await?;
+            DB.connect(&CONFIG.path).await?;
+            DB.signin(Database {
+                namespace: &CONFIG.ns,
+                database: &CONFIG.db,
+                username: &CONFIG.user,
+                password: &CONFIG.secret,
+            }).await?;
             DB.use_ns(&CONFIG.ns).use_db(&CONFIG.db).await?;
         }
     };
     Ok(())
 }
+
+struct DBGuard {
+    _token: Jwt,
+}
+impl DBGuard {
+    fn new(token: Jwt) -> Self {
+        Self { _token: token }
+    }
+
+    fn token(self) -> Jwt {
+        self._token
+    }
+}
+
+// impl Drop for DBGuard {
+//     fn drop(&mut self) {
+//         // let _ = DB.invalidate();
+//     }
+// }
 
 pub async fn close() -> Result<(), Error> {
     DB.invalidate().await?;

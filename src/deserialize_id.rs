@@ -161,25 +161,3 @@ mod tests {
         Ok(())
     }
 }
-//     }
-// }
-// Compare this snippet from src/record_id_data.rs:
-// use crate::ident::HasSurrealIdentifier;
-// use crate::ident::SurrealData;
-// use crate::prelude::*;
-// use crate::Error;
-// use async_trait::async_trait;
-// use serde::{de::DeserializeOwned, Serialize};
-// use std::fmt::Debug;
-// use std::pin::Pin;
-// 
-// pub struct RecordIdData<T> {
-//     pub id: SurrealID,
-//     pub table: String,
-//     pub data: Option<Box<T>>,
-// }
-// 
-// impl<T: HasSurrealIdentifier> RecordIdData<T> {
-//     pub fn new(tb: &str, id: Option<Id>, data: Box<T>) -> Self {
-//         let id = SurrealID::new(tb, id);
-//         Self

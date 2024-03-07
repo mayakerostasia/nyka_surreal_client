@@ -497,9 +497,9 @@ checksum = "a2bd12c1caf447e69cd4528f47f94d203fd2582878ecb9e9465484c4148a8223"
 
 [[package]]
 name = "cc"
-version = "1.0.89"
+version = "1.0.90"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a0ba8f7aaa012f30d5b2861462f6708eccd49c3c39863fe083a308035f63d723"
+checksum = "8cd6604a82acf3039f1144f54b8eb34e91ffba622051189e71b781822d5ee1f5"
 
 [[package]]
 name = "cedar-policy"
@@ -572,9 +572,9 @@ checksum = "fd16c4719339c4530435d38e511904438d07cce7950afa3718a84ac36c10e89e"
 
 [[package]]
 name = "chrono"
-version = "0.4.34"
+version = "0.4.35"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5bc015644b92d5890fab7489e49d21f879d5c990186827d42ec511919404f38b"
+checksum = "8eaf5903dcbc0a39312feb77df2ff4c76387d591b9fc7b04a238dcf8bb62639a"
 dependencies = [
  "android-tzdata",
  "iana-time-zone",
@@ -1767,7 +1767,7 @@ dependencies = [
 
 [[package]]
 name = "nico_surreal_client"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "async-trait",
  "color-eyre",
@@ -2646,7 +2646,7 @@ checksum = "cbf4a6aa5f6d6888f39e980649f3ad6b666acdce1d78e95b8a2cb076e687ae30"
 [[package]]
 name = "rs-nico-tracing"
 version = "0.2.0"
-source = "git+git+ssh://git@github.com/BlueBastion/DEV-rs-nico-tracing.git#f0fb69b51d8b4d6ba20e447084fd9acb0f6a3274"
+source = "git+git+ssh://git@github.com/BlueBastion/DEV-rs-nico-tracing.git#97741c8d5856ed0aac55e65aaad5532c57d2b389"
 dependencies = [
  "color-eyre",
  "lazy_static",

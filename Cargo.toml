@@ -1,6 +1,6 @@
 [package]
 name = "nico_surreal_client"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2021"
 include = ["src/**/*", "Cargo.toml", "Cargo.lock"]
 exclude = ["_scratch/"]
