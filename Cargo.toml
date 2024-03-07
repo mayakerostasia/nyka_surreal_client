@@ -10,21 +10,16 @@ resolver = "2"
 
 [dependencies]
 async-trait = "0.1.77"
-builder_macro = "0.5.1"
 color-eyre = "0.6.2"
 futures-lite = "2.2.0"
 geo-types = "0.7.13"
-# tokio-tower = "0.6.0"
-# tower = "0.4.13"
 once_cell = "1.19.0"
 pin-project-lite = "0.2.13"
-# tracing-test = "0.2.4"
 rs-nico-tracing = { git = "git+ssh://git@github.com/BlueBastion/DEV-rs-nico-tracing.git", version = "0.2.0"}
 serde = { version = "1.0.196", features = ["derive"] }
 serde_json = "1.0.113"
 serde_with = "3.6.1"
-surrealdb = { version = "1.2.0", default-features = false, features = ["protocol-ws", "kv-mem"]}
-test-case = "3.3.1"
+surrealdb = { version = "1.2.1", git = "https://github.com/surrealdb/surrealdb.git", ref = "v1.2.1", features = ["protocol-ws", "kv-mem"]}
 thiserror = "1.0.57"
 tokio = { version = "1.36.0", features = ["macros", "rt-multi-thread"] }
 tokio-tower = { version = "0.6.0", optional = true }

@@ -14,9 +14,7 @@ pub struct DbService {
     db: Arc<RwLock<DBClient>>,
 }
 
-impl<T> Service<T> for DbService
-where
-    T: Service<DbRequest, Response = DbResponse<Value>, Error = BoxError> + Send + 'static,
+impl Service for DbService
 {
     type Response = DbResponse<Value>;
     type Error = BoxError;

@@ -20,7 +20,7 @@ impl SurrealID {
 }
 
 pub trait SurrealIDFactory {
-    fn new(tb: &str, id: &str) -> SurrealID {
+    fn create(tb: &str, id: &str) -> SurrealID {
         SurrealID(Thing::from((tb, Id::from(id))))
     }
     fn random(tb: &str) -> SurrealID {
@@ -52,7 +52,7 @@ where
     Self: Sized + Clone,
 {
     fn data<T: std::convert::From<Self>>(self) -> T {
-        self.clone().try_into().unwrap()
+        <Self as std::convert::Into<T>>::into(self.clone())
     }
 }
 pub trait SurrealIDTable {

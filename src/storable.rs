@@ -44,10 +44,10 @@ where
     }
 }
 
-impl<'a, T: Storable> From<T> for Record<T> {
+impl<T: Storable> From<T> for Record<T> {
     fn from(storable: T) -> Self {
-        let id = (&storable).id();
-        let table = (&storable).table();
+        let id = storable.id();
+        let table = storable.table();
         let data = storable.data();
         let record: Record<T> = Record::new(table.as_str(), id, Some(Box::new(data)));
         record

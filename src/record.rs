@@ -29,7 +29,6 @@ impl<T: HasSurrealIdentifier> Record<T> {
         match self {
             Record::RecordIdData(data) => data.data,
             Record::RecordId(_id) => None,
-            _ => unimplemented!(),
         }
     }
 
@@ -37,13 +36,12 @@ impl<T: HasSurrealIdentifier> Record<T> {
         match self {
             Record::RecordIdData(data) => &mut data.data,
             Record::RecordId(_id) => panic!("Cannot mutate a RecordId"),
-            _ => unimplemented!(),
         }
     }
 }
 
 impl<T: HasSurrealIdentifier> SurrealIDFactory for Record<T> {
-    fn new(tb: &str, id: &str) -> SurrealID {
+    fn create(tb: &str, id: &str) -> SurrealID {
         SurrealID::new(tb, Some(Id::from(id)))
     }
     fn random(tb: &str) -> SurrealID {
@@ -115,7 +113,7 @@ impl<T> RecordIdData<T> {
         self.data
     }
 
-    pub fn into_inner_mut(&mut self) -> &mut Option<T> {
-        &mut self.data
+    pub fn into_inner_mut(self) -> Option<T> {
+        self.data
     }
 }

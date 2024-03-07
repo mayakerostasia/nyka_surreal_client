@@ -109,16 +109,16 @@ where
 {
     let deleted: Option<T> = DB.delete((table, id.to_raw())).await?;
     if let Some(deleted) = deleted {
-        return Ok(deleted);
+        Ok(deleted)
     } else {
-        return Err(Error::NoRecordFound {
+        Err(Error::NoRecordFound {
             namespace: CONFIG.ns.clone(),
             database: CONFIG.db.clone(),
             table: table.to_string(),
             id: id.to_string(),
             id_raw: id.to_raw(),
             // msg: Err(surrealdb::err::Error::NoRecordFound).expect_err(msg),
-        });
+        })
     }
 }
 
@@ -136,14 +136,14 @@ pub async fn connect(address: Option<&str>) -> Result<(), Error> {
                 Some(addr) => addr,
                 None => &CONFIG.path,
             };
-            let _connect = DB.connect(addr).await?;
-            let _db_ns = DB.use_ns(&CONFIG.ns).use_db(&CONFIG.db).await?;
+            DB.connect(addr).await?;
+            DB.use_ns(&CONFIG.ns).use_db(&CONFIG.db).await?;
         }
     };
     Ok(())
 }
 
 pub async fn close() -> Result<(), Error> {
-    let _close = DB.invalidate().await?;
+    DB.invalidate().await?;
     Ok(())
 }
