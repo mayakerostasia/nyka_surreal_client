@@ -50,15 +50,16 @@ fn person_factory(table: &str, id: Id, name: &str, age: u8) -> Option<Person> {
 
 #[tokio::main]
 async fn main() -> Result<(), nico_surreal_client::Error> {
+    let conf = setup();
     // Record To Database
     let john = person_factory(TEST_TABLE, Id::from(1), "John", 32).unwrap();
     println!("Record John: {:?}", &john);
-    let _ = john.delete().await;
+    let _ = john.delete(&conf).await;
 
     // let save_john = Record::from(john.clone());
-    let saved_john = (&john).clone().save().await;
-    let selected_john = &john.select().await?;
-    let deleted_john = &john.delete().await?;
+    let saved_john = (&john).clone().save(&conf).await;
+    let selected_john = &john.select(&conf).await?;
+    let deleted_john = &john.delete(&conf).await?;
 
     // Some Logging
     println!("Created -> Yes");
