@@ -2646,7 +2646,7 @@ checksum = "cbf4a6aa5f6d6888f39e980649f3ad6b666acdce1d78e95b8a2cb076e687ae30"
 [[package]]
 name = "rs-nico-tracing"
 version = "0.2.0"
-source = "git+git+ssh://git@github.com/BlueBastion/DEV-rs-nico-tracing.git#97741c8d5856ed0aac55e65aaad5532c57d2b389"
+source = "git+git+ssh://git@github.com/BlueBastion/DEV-rs-nico-tracing.git?branch=master#97741c8d5856ed0aac55e65aaad5532c57d2b389"
 dependencies = [
  "color-eyre",
  "lazy_static",
@@ -3151,7 +3151,7 @@ checksum = "81cdd64d312baedb58e21336b31bc043b77e01cc99033ce76ef539f78e965ebc"
 [[package]]
 name = "surrealdb"
 version = "1.4.0"
-source = "git+https://github.com/surrealdb/surrealdb.git#1784a1202e75dd7d56639ad213a22daf3808cd84"
+source = "git+https://github.com/surrealdb/surrealdb.git#87da9c0b01c66de428887fc6560c19ad5efa0525"
 dependencies = [
  "async-channel",
  "bincode",
@@ -3189,7 +3189,7 @@ dependencies = [
 [[package]]
 name = "surrealdb-core"
 version = "1.4.0"
-source = "git+https://github.com/surrealdb/surrealdb.git#1784a1202e75dd7d56639ad213a22daf3808cd84"
+source = "git+https://github.com/surrealdb/surrealdb.git#87da9c0b01c66de428887fc6560c19ad5efa0525"
 dependencies = [
  "addr",
  "any_ascii",

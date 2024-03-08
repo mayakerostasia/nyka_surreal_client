@@ -6,8 +6,9 @@ mod ident;
 mod record;
 mod storable;
 
-use config::DbConfig;
+// use config::DbConfig;
 // use creds::Credentials;
+pub use config::{ setup, DbConfig };
 pub use deserialize_id::deserialize_id;
 pub use error::Error;
 pub use ident::SurrealID;
@@ -16,10 +17,11 @@ use once_cell::sync::Lazy;
 pub use record::Record;
 pub use serde::{Deserialize, Serialize};
 pub use storable::{DBThings, Storable};
+
 use surrealdb::opt::auth::Root;
 use surrealdb::{
     engine::any::Any,
-    opt::auth::{Database, Jwt},
+    opt::auth::Jwt,
     sql::Id,
     Response, Surreal,
 };
@@ -35,7 +37,6 @@ pub mod prelude {
     pub use surrealdb::Error as SDBError;
 
     pub use super::{
-        config::{ setup, DbConfig },
         connect,
         create_record,
         // update_record,
@@ -137,7 +138,7 @@ pub async fn query(query: &str) -> Result<Response, Error> {
 
 pub async fn connect<'a>(config: &'a config::DbConfig) -> Result<(), Error> {
     DB.connect(&config.path).await?;
-    let result = DB.signin(Root {
+    let _result = DB.signin(Root {
         username: &config.user,
         password: &config.secret,
     }).await?;

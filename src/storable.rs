@@ -4,6 +4,7 @@ use std::pin::Pin;
 use async_trait::async_trait;
 use serde::{de::DeserializeOwned, Serialize};
 
+use crate::DbConfig;
 use crate::ident::HasSurrealIdentifier;
 use crate::ident::SurrealData;
 use crate::prelude::*;
