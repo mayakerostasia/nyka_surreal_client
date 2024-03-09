@@ -52,14 +52,14 @@ where
             A: serde::de::MapAccess<'de>,
         {
             let _table: Option<(String, String)> = map.next_entry()?;
-            info!("Table from de {:?}", _table);
+            // info!("Table from de {:?}", _table);
 
             let id: Option<(String, Map<String, JValue>)> = map.next_entry()?;
 
             let mut _id: Option<Id> = None;
             match id {
                 Some((key, value)) => {
-                    info!("Key: {:#?}", key);
+                    // info!("Key: {:#?}", key);
                     loop {
                         let entry = value.get("id");
                         if let Some(entry) = entry {
@@ -74,7 +74,7 @@ where
                                     unimplemented!();
                                 }
                                 JValue::Number(num) => {
-                                    info!("Number: {:#?}", num);
+                                    // info!("Number: {:#?}", num);
                                     _id = Some(Id::Number(num.as_i64().expect("Here")));
                                 }
                                 JValue::Object(obj) => {
@@ -82,7 +82,7 @@ where
                                     unimplemented!()
                                 }
                                 JValue::String(str) => {
-                                    info!("String: {:#?}", str);
+                                    // info!("String: {:#?}", str);
                                     _id = Some(Id::String(str.as_str().to_string()));
                                 }
                                 JValue::Null => {
@@ -91,7 +91,7 @@ where
                                 }
                             }
                         } else {
-                            info!("No id");
+                            // info!("No id");
                             break;
                         }
                     }
