@@ -23,7 +23,6 @@ where
         where
             E: serde::de::Error,
         {
-            println!("Here at string");
             let str_val = value.parse::<String>().expect("In string");
             Ok(SurrealID::from(("_".to_string(), str_val)))
         }
