@@ -94,8 +94,12 @@ impl Default for SurrealID {
 
 impl Display for SurrealID {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        todo!("SurrealID::fmt");
-        // write!(f, "{}:{:?}", self.tb, self.id.clone())
+        match self {
+            SurrealID::Thing(thing) => write!(f, "{}", thing),
+            SurrealID::TableId(tb, id) => write!(f, "{}:{}", tb, id),
+            SurrealID::Id(id) => write!(f, "{}", id),
+            SurrealID::Table(tb) => write!(f, "{}", tb),
+        }
     }
 }
 
