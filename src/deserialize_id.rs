@@ -15,6 +15,7 @@ where
         type Value = SurrealID;
 
         fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+            println!("Here at expecting");
             formatter.write_str("well shit bitch... someone went and shit in my oven")
         }
 

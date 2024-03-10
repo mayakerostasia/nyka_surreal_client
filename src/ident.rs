@@ -28,23 +28,6 @@ pub trait SurrealIDFactory {
     }
 }
 
-// impl From<SurrealID> for Object {
-//     fn from(ident: SurrealID) -> Self {
-//         let mut object = Object(BTreeMap::<String, Value>::new());
-//         object.insert("tb".to_string(), Value::Strand(Strand(ident.0.tb.clone()));
-//         // object.insert("id".to_string(), Id::(ident.0.id.clone()));
-//         object
-//     }
-// }
-
-// impl From<Object> for SurrealID {
-//     fn from(object: Object) -> Self {
-//         println!("{:?}", object.0);
-//         Self::from((object.0["tb"].clone(), object.0["id"].clone()))
-//         // object.0.into()
-//     }
-// }
-
 pub trait HasSurrealIdentifier: SurrealIDTable + SurrealIDIdent {}
 
 pub trait SurrealData
