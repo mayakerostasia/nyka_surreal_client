@@ -62,7 +62,7 @@ impl SurrealIDIdent for SurrealID {
             SurrealID::Thing(thing) => thing.id.clone(),
             SurrealID::TableId(_, id) => id.clone(),
             SurrealID::Id(id) => id.clone(),
-            _ => unimplemented!(),
+            _ => unimplemented!("SurrealID::id( Didn't have an ID! )"),
         }
     }
 }
