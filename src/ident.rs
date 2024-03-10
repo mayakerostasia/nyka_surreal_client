@@ -57,11 +57,13 @@ pub trait SurrealIDIdent {
 impl SurrealIDFactory for SurrealID {}
 impl SurrealIDIdent for SurrealID {
     fn id(&self) -> Id {
-        todo!( "SurrealID::id()" );
-        // match &self.id {
-        //     Some(id) => id.clone(),
-        //     None => unimplemented!(), // Id::rand(),
-        // }
+        // todo!( "SurrealID::id()" );
+        match self {
+            SurrealID::Thing(thing) => thing.id(),
+            SurrealID::TableId(_, id) => id.clone(),
+            SurrealID::Id(id) => id.clone(),
+            _ => unimplemented!(),
+        }
     }
 }
 impl SurrealIDTable for SurrealID {
