@@ -8,20 +8,32 @@ use serde::{Deserialize, Serialize};
 use surrealdb::sql::{Id, Thing};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct SurrealID(pub Thing);
+pub enum SurrealID { 
+    Thing(Thing),
+    Table(String),
+    TableId(String, Id),
+    Id(Id),
+}
 
 impl SurrealID {
-    pub fn new(tb: &str, id: Id) -> Self {
-        SurrealID(Thing::from((tb, id)))
+    pub fn new(tb: Option<&str>, id: Option<Id>) -> Self {
+        match (tb, id) {
+            (Some(tb), Some(id)) => SurrealID::Thing(Thing::from((tb, id))),
+            (Some(tb), None) => SurrealID::Table(tb.to_string()),
+            (None, Some(id)) => SurrealID::Id(id),
+            (None, None) => SurrealID::Id(Id::rand()),
+        }
     }
 }
 
 pub trait SurrealIDFactory {
     fn create(tb: &str, id: &str) -> SurrealID {
-        SurrealID(Thing::from((tb, Id::from(id))))
+        todo!();
+        // SurrealID { tb: tb.to_string(), id: Some(Id::from(id)) }
     }
     fn random(tb: &str) -> SurrealID {
-        SurrealID(Thing::from((tb, Id::rand().to_raw().as_str())))
+        todo!();
+        // SurrealID { tb: tb.to_string(), id: Some(Id::rand()) }
     }
 }
 
@@ -45,12 +57,17 @@ pub trait SurrealIDIdent {
 impl SurrealIDFactory for SurrealID {}
 impl SurrealIDIdent for SurrealID {
     fn id(&self) -> Id {
-        self.0.id.clone()
+        todo!( "SurrealID::id()" );
+        // match &self.id {
+        //     Some(id) => id.clone(),
+        //     None => unimplemented!(), // Id::rand(),
+        // }
     }
 }
 impl SurrealIDTable for SurrealID {
     fn table(&self) -> String {
-        self.0.tb.clone()
+        todo!(  "SurrealID::table()" );
+        // self.tb.clone()
     }
 }
 // impl SurrealData for SurrealID {
@@ -61,57 +78,62 @@ impl SurrealIDTable for SurrealID {
 
 impl Default for SurrealID {
     fn default() -> Self {
-        SurrealID(Thing::from(("_", Id::rand().to_raw().as_str())))
+        todo!("SurrealID::default()");
+        // SurrealID::Thing(Thing::random())
+        // SurrealID { tb: "_".to_string(), id: Some(Id::rand()) }
     }
 }
 
 impl Display for SurrealID {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self.0)
+        todo!("SurrealID::fmt");
+        // write!(f, "{}:{:?}", self.tb, self.id.clone())
     }
 }
 
 impl From<Thing> for SurrealID {
     fn from(thing: Thing) -> Self {
-        SurrealID(thing)
+        SurrealID::Thing(thing)
     }
 }
 
 impl From<SurrealID> for Thing {
     fn from(ident: SurrealID) -> Self {
-        ident.0
+        todo!("SurrealID::from(SurrealID)");
+
     }
 }
 
 impl From<(String, String)> for SurrealID {
     fn from((tb, id): (String, String)) -> Self {
-        SurrealID(Thing::from((tb, id)))
+        SurrealID::Thing(Thing::from((tb, id)))
     }
 }
 
 impl From<(&str, &str)> for SurrealID {
     fn from((tb, id): (&str, &str)) -> Self {
-        SurrealID(Thing::from((tb, id)))
+        SurrealID::Thing(Thing::from((tb, id)))
     }
 }
 
 impl From<(String, Id)> for SurrealID {
     fn from((tb, id): (String, Id)) -> Self {
-        SurrealID(Thing::from((tb, id)))
+        SurrealID::Thing(Thing::from((tb, id)))
     }
 }
 
 impl From<(&str, Id)> for SurrealID {
     fn from((tb, id): (&str, Id)) -> Self {
-        SurrealID(Thing::from((tb, id)))
+        SurrealID::Thing(Thing::from((tb, id)))
     }
 }
 
 impl FromStr for SurrealID {
     type Err = ();
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let id: Thing = s.parse().unwrap();
-        Ok(SurrealID(id))
+        todo!("SurrealID::from_str");
+        // let id: Thing = s.parse().unwrap();
+        // Ok(SurrealID(id))
     }
 }
 

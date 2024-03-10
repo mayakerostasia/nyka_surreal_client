@@ -34,7 +34,7 @@ where
             E: serde::de::Error,
         {
             println!("Here at i64");
-            let sid: SurrealID = SurrealID::new("_", Id::from(value));
+            let sid: SurrealID = SurrealID::new(None, Some(Id::from(value)));
             Ok(sid)
         }
 
@@ -43,7 +43,7 @@ where
             E: serde::de::Error,
         {
             println!("Here at u64");
-            let sid: SurrealID = SurrealID::new("_", Id::from(value));
+            let sid: SurrealID = SurrealID::new(None, Some(Id::from(value)));
             Ok(sid)
         }
 
@@ -101,7 +101,7 @@ where
                             break;
                         }
                     }
-                    let sid: SurrealID = SurrealID::new(table.as_str(), _id.expect("Couldn't deserialize id from map {}"));
+                    let sid: SurrealID = SurrealID::new(Some(table.as_str()), _id);
                     Ok(sid)
                 }
                 None => Err(serde::de::Error::custom("No id")),

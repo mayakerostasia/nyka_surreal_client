@@ -22,7 +22,7 @@ impl<T: HasSurrealIdentifier> Record<T> {
     pub fn new(tb: &str, id: Option<Id>, data: Option<Box<T>>) -> Self {
         match data {
             Some(data) => Record::RecordIdData(RecordIdData::new(tb, id, *data)),
-            None => Record::RecordId(SurrealID::new(tb, id.expect("Did not provide an id"))),
+            None => Record::RecordId(SurrealID::new(Some(tb), id)),
         }
     }
 
@@ -43,10 +43,12 @@ impl<T: HasSurrealIdentifier> Record<T> {
 
 impl<T: HasSurrealIdentifier> SurrealIDFactory for Record<T> {
     fn create(tb: &str, id: &str) -> SurrealID {
-        SurrealID::new(tb, Id::from(id))
+        todo!("Record::create()");
+        // SurrealID::new(tb, Id::from(id))
     }
     fn random(tb: &str) -> SurrealID {
-        SurrealID::new(tb, Id::rand())
+        todo!("Record::random()");
+        // SurrealID::new(tb, Id::rand())
     }
 }
 
@@ -57,7 +59,7 @@ impl<T: DBThings> SurrealIDIdent for Record<T> {
     fn id(&self) -> Id {
         match &self {
             Record::RecordIdData(data) => data.id.id(),
-            Record::RecordId(id) => id.0.id.clone(),
+            Record::RecordId(id) => id.id(),
         }
     }
 }
@@ -65,7 +67,7 @@ impl<T: DBThings> SurrealIDTable for Record<T> {
     fn table(&self) -> String {
         match &self {
             Record::RecordIdData(data) => data.id.table(),
-            Record::RecordId(id) => id.0.tb.to_string(),
+            Record::RecordId(id) => id.table(),
         }
     }
 }

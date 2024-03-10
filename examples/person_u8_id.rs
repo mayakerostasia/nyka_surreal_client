@@ -42,8 +42,7 @@ impl From<Record<Person>> for Person {
 // API Call or Factory
 fn person_factory(table: &str, id: Id, name: &str, age: u8) -> Option<Person> {
     Some(Person {
-        id: SurrealID(Thing::from((table, id))),
-        // table: table.to_string(),
+        id: SurrealID::Thing(Thing::from((table, id))),
         name: name.to_string(),
         age: age,
     })
