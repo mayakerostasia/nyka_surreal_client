@@ -19,10 +19,10 @@ pub enum Record<T> {
 }
 
 impl<T: HasSurrealIdentifier> Record<T> {
-    pub fn new(tb: &str, id: Id, data: Option<Box<T>>) -> Self {
+    pub fn new(tb: &str, id: Option<Id>, data: Option<Box<T>>) -> Self {
         match data {
-            Some(data) => Record::RecordIdData(RecordIdData::new(tb, Some(id), *data)),
-            None => Record::RecordId(SurrealID::new(tb, Some(id))),
+            Some(data) => Record::RecordIdData(RecordIdData::new(tb, id, *data)),
+            None => Record::RecordId(SurrealID::new(tb, id.expect("Did not provide an id"))),
         }
     }
 
@@ -43,10 +43,10 @@ impl<T: HasSurrealIdentifier> Record<T> {
 
 impl<T: HasSurrealIdentifier> SurrealIDFactory for Record<T> {
     fn create(tb: &str, id: &str) -> SurrealID {
-        SurrealID::new(tb, Some(Id::from(id)))
+        SurrealID::new(tb, Id::from(id))
     }
     fn random(tb: &str) -> SurrealID {
-        SurrealID::new(tb, None)
+        SurrealID::new(tb, Id::rand())
     }
 }
 

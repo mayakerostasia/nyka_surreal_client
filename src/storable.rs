@@ -22,7 +22,7 @@ where
 
         let ret: Result<Vec<Self>, Error> = create_record(Record::new(
             self.table().as_str(),
-            self.id(),
+            Some(self.id()),
             Some(Box::new(self)),
         ))
         .await;
@@ -50,7 +50,7 @@ impl<T: Storable> From<T> for Record<T> {
         let id = storable.id();
         let table = storable.table();
         let data = storable.data();
-        let record: Record<T> = Record::new(table.as_str(), id, Some(Box::new(data)));
+        let record: Record<T> = Record::new(table.as_str(), Some(id), Some(Box::new(data)));
         record
     }
 }
