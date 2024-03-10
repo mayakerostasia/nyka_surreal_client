@@ -59,7 +59,7 @@ impl SurrealIDIdent for SurrealID {
     fn id(&self) -> Id {
         // todo!( "SurrealID::id()" );
         match self {
-            SurrealID::Thing(thing) => thing.id(),
+            SurrealID::Thing(thing) => thing.id.clone(),
             SurrealID::TableId(_, id) => id.clone(),
             SurrealID::Id(id) => id.clone(),
             _ => unimplemented!(),
