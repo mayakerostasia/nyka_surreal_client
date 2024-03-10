@@ -11,11 +11,8 @@ use surrealdb::sql::{Id, Thing};
 pub struct SurrealID(pub Thing);
 
 impl SurrealID {
-    pub fn new(tb: &str, id: Option<Id>) -> Self {
-        match id {
-            Some(id) => SurrealID(Thing::from((tb, id))),
-            None => SurrealID(Thing::from((tb, Id::rand().to_raw().as_str()))),
-        }
+    pub fn new(tb: &str, id: Id) -> Self {
+        SurrealID(Thing::from((tb, id)))
     }
 }
 

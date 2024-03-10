@@ -34,7 +34,7 @@ where
             E: serde::de::Error,
         {
             println!("Here at i64");
-            let sid: SurrealID = SurrealID::new("default", Some(Id::from(value)));
+            let sid: SurrealID = SurrealID::new("_", Id::from(value));
             Ok(sid)
         }
 
@@ -43,7 +43,7 @@ where
             E: serde::de::Error,
         {
             println!("Here at u64");
-            let sid: SurrealID = SurrealID::new("default", Some(Id::from(value)));
+            let sid: SurrealID = SurrealID::new("_", Id::from(value));
             Ok(sid)
         }
 
@@ -71,8 +71,8 @@ where
                             match entry {
                                 JValue::Array(arr) => {
                                     info!("Array: {:#?}", arr);
-                                    unimplemented!();
                                     // _id = Some(Id::Array(arr));
+                                    unimplemented!();
                                 }
                                 JValue::Bool(boole) => {
                                     info!("Bool: {:#?}", boole);
@@ -83,8 +83,9 @@ where
                                     _id = Some(Id::Number(num.as_i64().expect("Here")));
                                 }
                                 JValue::Object(obj) => {
-                                    info!("Object: {:#?}", obj);
-                                    unimplemented!()
+                                    // info!("Object: {:#?}", obj);
+                                    // _id = Some(Id::Object(surrealdb::sql::Object(obj)))
+                                    unimplemented!();
                                 }
                                 JValue::String(str) => {
                                     // info!("String: {:#?}", str);
@@ -100,7 +101,7 @@ where
                             break;
                         }
                     }
-                    let sid: SurrealID = SurrealID::new(table.as_str(), _id);
+                    let sid: SurrealID = SurrealID::new(table.as_str(), _id.expect("Couldn't deserialize id from map {}"));
                     Ok(sid)
                 }
                 None => Err(serde::de::Error::custom("No id")),
