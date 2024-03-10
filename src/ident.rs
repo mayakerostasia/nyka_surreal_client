@@ -10,9 +10,9 @@ use surrealdb::sql::{Id, Thing};
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum SurrealID { 
     Thing(Thing),
-    Table(String),
     TableId(String, Id),
     Id(Id),
+    Table(String),
 }
 
 impl SurrealID {
