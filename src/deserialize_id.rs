@@ -1,3 +1,5 @@
+// "⟩"
+
 use rs_nico_tracing::info;
 use serde::Deserializer;
 use serde_json::{Map, Value as JValue};
@@ -52,8 +54,6 @@ where
             let _table: Option<(String, String)> = map.next_entry()?;
 
             let table = if let Some((key, value)) = _table {
-                info!("Table: {:#?}", key);
-                info!("Id: {:#?}", value);
                 value
             } else {
                 "_".to_string()
