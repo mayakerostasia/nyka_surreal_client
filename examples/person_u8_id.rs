@@ -18,13 +18,13 @@ struct Person {
 }
 impl Storable for Person {}
 impl SurrealIDIdent for Person {
-    fn id(&self) -> Id {
-        self.id.id()
+    fn id(&self, create: bool) -> Id {
+        self.id.id(create)
     }
 }
 impl SurrealIDTable for Person {
-    fn table(&self) -> String {
-        self.id.table().to_string()
+    fn table(&self, create: bool) -> String {
+        self.id.table(create).to_string()
     }
 }
 impl DBThings for Person {}
@@ -32,7 +32,7 @@ impl HasSurrealIdentifier for Person {}
 impl SurrealData for Person {}
 impl From<Record<Person>> for Person {
     fn from(record: Record<Person>) -> Self {
-        let id = record.id();
+        let id = record.id(false);
         println!("ID: {:?}", &id);
         let data = record.into_inner().unwrap();
         data

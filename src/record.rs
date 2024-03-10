@@ -56,18 +56,18 @@ impl<T: DBThings> SurrealData for Record<T> {}
 impl<T: DBThings> HasSurrealIdentifier for Record<T> {}
 impl<T: DBThings> DBThings for Record<T> {}
 impl<T: DBThings> SurrealIDIdent for Record<T> {
-    fn id(&self) -> Id {
+    fn id(&self, create: bool) -> Id {
         match &self {
-            Record::RecordIdData(data) => data.id.id(),
-            Record::RecordId(id) => id.id(),
+            Record::RecordIdData(data) => data.id.id(create),
+            Record::RecordId(id) => id.id(create),
         }
     }
 }
 impl<T: DBThings> SurrealIDTable for Record<T> {
-    fn table(&self) -> String {
+    fn table(&self, create: bool) -> String {
         match &self {
-            Record::RecordIdData(data) => data.id.table(),
-            Record::RecordId(id) => id.table(),
+            Record::RecordIdData(data) => data.id.table(create),
+            Record::RecordId(id) => id.table(create),
         }
     }
 }

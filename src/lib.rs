@@ -63,7 +63,7 @@ where
     T: HasSurrealIdentifier + SurrealData + DBThings + From<Record<T>>,
 {
     let created: Vec<T> = DB
-        .create(record.table())
+        .create(record.table(false))
         .content(record.data::<T>())
         .await?;
     Ok(created)

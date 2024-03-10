@@ -48,41 +48,42 @@ where
     }
 }
 pub trait SurrealIDTable {
-    fn table(&self) -> String;
+    fn table(&self, create: bool) -> String;
 }
 pub trait SurrealIDIdent {
-    fn id(&self) -> Id;
+    fn id(&self, create: bool) -> Id;
 }
 
 impl SurrealIDFactory for SurrealID {}
 impl SurrealIDIdent for SurrealID {
-    fn id(&self) -> Id {
+    fn id(&self, create: bool) -> Id {
         // todo!( "SurrealID::id()" );
         match self {
             SurrealID::Thing(thing) => thing.id.clone(),
             SurrealID::TableId(_, id) => id.clone(),
             SurrealID::Id(id) => id.clone(),
-            _ => unimplemented!("SurrealID::id( Didn't have an ID! )"),
+            _ => match create {
+                true => unimplemented!("    SurrealID::id( create ) "),
+                false => unimplemented!("    SurrealID::id( !create ) "),
+            }
         }
     }
 }
 impl SurrealIDTable for SurrealID {
-    fn table(&self) -> String {
+    fn table(&self, create: bool) -> String {
         // todo!(  "SurrealID::table()" );
         match self {
             SurrealID::Thing(thing) => thing.tb.clone(),
             SurrealID::Table(tb) => tb.clone(),
             SurrealID::TableId(tb, _) => tb.clone(),
-            _ => unimplemented!(),
+            _ => match create {
+                true => unimplemented!("    SurrealID::table( create ) "),
+                false => unimplemented!("    SurrealID::table( !create ) "),
+            }
         }
         // self.tb.clone()
     }
 }
-// impl SurrealData for SurrealID {
-//     fn data(&self) -> String {
-//         self.clone().to_string()
-//     }
-// }
 
 impl Default for SurrealID {
     fn default() -> Self {
