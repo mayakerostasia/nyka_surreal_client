@@ -50,12 +50,14 @@ where
             A: serde::de::MapAccess<'de>,
         {
             let _table: Option<(String, String)> = map.next_entry()?;
-            // if let Some((key, value)) = _table {
-            //     info!("Table: {:#?}", key);
-            //     info!("Id: {:#?}", value);
 
-            // }
-            // info!("Table from de {:?}", _table);
+            let table = if let Some((key, value)) = _table {
+                info!("Table: {:#?}", key);
+                info!("Id: {:#?}", value);
+                value
+            } else {
+                "_".to_string()
+            };
 
             let id: Option<(String, Map<String, JValue>)> = map.next_entry()?;
 
@@ -98,7 +100,7 @@ where
                             break;
                         }
                     }
-                    let sid: SurrealID = SurrealID::new("default", _id);
+                    let sid: SurrealID = SurrealID::new(table.as_str(), _id);
                     Ok(sid)
                 }
                 None => Err(serde::de::Error::custom("No id")),
