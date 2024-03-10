@@ -28,11 +28,11 @@ impl SurrealID {
 
 pub trait SurrealIDFactory {
     fn create(tb: &str, id: &str) -> SurrealID {
-        todo!();
+        todo!("SurrealIDFactory::create()");
         // SurrealID { tb: tb.to_string(), id: Some(Id::from(id)) }
     }
     fn random(tb: &str) -> SurrealID {
-        todo!();
+        todo!(  "SurrealIDFactory::random()" );
         // SurrealID { tb: tb.to_string(), id: Some(Id::rand()) }
     }
 }
@@ -68,7 +68,13 @@ impl SurrealIDIdent for SurrealID {
 }
 impl SurrealIDTable for SurrealID {
     fn table(&self) -> String {
-        todo!(  "SurrealID::table()" );
+        // todo!(  "SurrealID::table()" );
+        match self {
+            SurrealID::Thing(thing) => thing.tb.clone(),
+            SurrealID::Table(tb) => tb.clone(),
+            SurrealID::TableId(tb, _) => tb.clone(),
+            _ => unimplemented!(),
+        }
         // self.tb.clone()
     }
 }
