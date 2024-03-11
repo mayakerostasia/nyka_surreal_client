@@ -103,6 +103,7 @@ where
                             let sid = SurrealId(thing);
                             break Ok(sid);
                         } else {
+                            panic!("No id");
                             continue;
                         }
                     }
