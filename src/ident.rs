@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use surrealdb::sql::{Id, Thing};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub enum SurrealID { 
+pub enum SurrealID {
     Thing(Thing),
     TableId(String, Id),
     Id(Id),
@@ -16,7 +16,7 @@ pub enum SurrealID {
 }
 
 impl SurrealID {
-    pub fn new(tb: Option<&str>, id: Option<Id>) -> Self {
+    pub fn new(tb: Option<String>, id: Option<Id>) -> Self {
         match (tb, id) {
             (Some(tb), Some(id)) => SurrealID::Thing(Thing::from((tb, id))),
             (Some(tb), None) => SurrealID::Table(tb.to_string()),
@@ -32,7 +32,7 @@ pub trait SurrealIDFactory {
         // SurrealID { tb: tb.to_string(), id: Some(Id::from(id)) }
     }
     fn random(tb: &str) -> SurrealID {
-        todo!(  "SurrealIDFactory::random()" );
+        todo!("SurrealIDFactory::random()");
         // SurrealID { tb: tb.to_string(), id: Some(Id::rand()) }
     }
 }
@@ -66,11 +66,10 @@ impl SurrealIDIdent for SurrealID {
             SurrealID::Thing(thing) => thing.id.clone(),
             SurrealID::TableId(_, id) => id.clone(),
             SurrealID::Id(id) => id.clone(),
-            _ => unimplemented!("SurrealID::id( !create ) ")
-            // match create {
-            //     true => unimplemented!("    SurrealID::id( create ) "),
-            //     false => unimplemented!("    SurrealID::id( !create ) "),
-            // }
+            _ => unimplemented!("SurrealID::id( !create ) "), // match create {
+                                                              //     true => unimplemented!("    SurrealID::id( create ) "),
+                                                              //     false => unimplemented!("    SurrealID::id( !create ) "),
+                                                              // }
         }
     }
 }
@@ -81,11 +80,10 @@ impl SurrealIDTable for SurrealID {
             SurrealID::Thing(thing) => thing.tb.clone(),
             SurrealID::Table(tb) => tb.clone(),
             SurrealID::TableId(tb, _) => tb.clone(),
-            _ => unimplemented!("SurrealID::table( !create ) ")
-            // _ => match create {
-            //     true => unimplemented!("    SurrealID::table( create ) "),
-            //     false => unimplemented!("    SurrealID::table( !create ) "),
-            // }
+            _ => unimplemented!("SurrealID::table( !create ) "), // _ => match create {
+                                                                 //     true => unimplemented!("    SurrealID::table( create ) "),
+                                                                 //     false => unimplemented!("    SurrealID::table( !create ) "),
+                                                                 // }
         }
         // self.tb.clone()
     }
@@ -119,7 +117,6 @@ impl From<Thing> for SurrealID {
 impl From<SurrealID> for Thing {
     fn from(ident: SurrealID) -> Self {
         todo!("SurrealID::from(SurrealID)");
-
     }
 }
 

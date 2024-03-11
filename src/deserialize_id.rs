@@ -54,9 +54,9 @@ where
             let _table: Option<(String, String)> = map.next_entry()?;
 
             let table = if let Some((key, value)) = _table {
-                value
+                Some(value)
             } else {
-                "_".to_string()
+                None
             };
 
             let id: Option<(String, Map<String, JValue>)> = map.next_entry()?;
@@ -101,7 +101,7 @@ where
                             break;
                         }
                     }
-                    let sid: SurrealID = SurrealID::new(Some(table.as_str()), _id);
+                    let sid: SurrealID = SurrealID::new(table, _id);
                     Ok(sid)
                 }
                 None => Err(serde::de::Error::custom("No id")),

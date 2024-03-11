@@ -2,11 +2,11 @@ use std::fmt::Debug;
 use std::pin::Pin;
 
 use async_trait::async_trait;
+use futures_lite::Future;
 use serde::{de::DeserializeOwned, Serialize};
 
-use crate::DbConfig;
 use crate::prelude::*;
-use futures_lite::Future;
+use crate::DbConfig;
 use crate::Error;
 
 pub trait DBThings: Debug + Serialize + DeserializeOwned + Sized + Clone {}
@@ -17,20 +17,29 @@ where
     Self: Into<Record<T>> + DBThings,
     T: DBThings + From<Record<T>> + 'static,
 {
-    async fn save(&self, config: &DbConfig) -> Pin<Box< dyn Future< Output = Result<Vec<T>, Error>> >> {
+    async fn save(
+        &self,
+        config: &DbConfig,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<T>, Error>>>> {
         // todo!();
         let _ = connect(config).await.ok();
         let record: Record<T> = <Self as Into<Record<T>>>::into(self.clone());
         Box::pin(create_record(record))
     }
 
-    async fn select(&self, config: &DbConfig) -> Pin<Box< dyn Future< Output = Result<Option<Record<T>>, Error>>  >> {
+    async fn select(
+        &self,
+        config: &DbConfig,
+    ) -> Pin<Box<dyn Future<Output = Result<Option<Record<T>>, Error>>>> {
         let _ = connect(config).await.ok();
         let record: Record<T> = <Self as Into<Record<T>>>::into(self.clone());
         Box::pin(get_record(record))
     }
 
-    async fn delete(&self, config: &DbConfig) -> Pin<Box<dyn Future<Output = Result< Option<T>, Error>> >> {
+    async fn delete(
+        &self,
+        config: &DbConfig,
+    ) -> Pin<Box<dyn Future<Output = Result<Option<T>, Error>>>> {
         let _ = connect(config).await.ok();
         let record: Record<T> = <Self as Into<Record<T>>>::into(self.clone());
         Box::pin(delete_record(record))

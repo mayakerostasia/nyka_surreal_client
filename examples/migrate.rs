@@ -14,7 +14,8 @@ async fn main() -> Result<(), Error> {
     db.signin(Root {
         username: "root",
         password: "root",
-    }).await?;
+    })
+    .await?;
 
     // Select a specific namespace / database
     db.use_ns("nico").use_db("nico").await?;

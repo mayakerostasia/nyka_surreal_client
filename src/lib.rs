@@ -8,7 +8,7 @@ mod storable;
 
 // use config::DbConfig;
 // use creds::Credentials;
-pub use config::{ setup, DbConfig };
+pub use config::{setup, DbConfig};
 pub use deserialize_id::deserialize_id;
 pub use error::Error;
 pub use ident::SurrealID;
@@ -17,14 +17,8 @@ use once_cell::sync::Lazy;
 pub use record::Record;
 pub use serde::{Deserialize, Serialize};
 pub use storable::{DBThings, Storable};
-
 use surrealdb::opt::auth::Root;
-use surrealdb::{
-    engine::any::Any,
-    opt::auth::Jwt,
-    sql::Id,
-    Response, Surreal,
-};
+use surrealdb::{engine::any::Any, opt::auth::Jwt, sql::Id, Response, Surreal};
 
 static DB: Lazy<Surreal<Any>> = Lazy::new(Surreal::init);
 
@@ -103,8 +97,7 @@ where
         &_id.to_raw().to_string()
     );
 
-    DB
-        .select((&table, _id.clone())) // Implement the IntoResource<T> trait for surrealdb::sql::Thing
+    DB.select((&table, _id.clone())) // Implement the IntoResource<T> trait for surrealdb::sql::Thing
         .await
         .map_err(|_e| Error::NoRecordFound {
             table: table.to_string(),
@@ -113,8 +106,8 @@ where
         })
 }
 
-pub async fn delete_record<T>(record: Record<T>) -> Result<Option<T>, Error> 
-// pub async fn delete_record<T>(table: &str, id: Id) -> Result<Option<T>, Error> 
+pub async fn delete_record<T>(record: Record<T>) -> Result<Option<T>, Error>
+// pub async fn delete_record<T>(table: &str, id: Id) -> Result<Option<T>, Error>
 where
     T: DBThings,
 {
@@ -128,10 +121,12 @@ pub async fn query(query: &str) -> Result<Response, Error> {
 
 pub async fn connect<'a>(config: &'a config::DbConfig) -> Result<(), Error> {
     DB.connect(&config.path).await?;
-    let _result = DB.signin(Root {
-        username: &config.user,
-        password: &config.secret,
-    }).await?;
+    let _result = DB
+        .signin(Root {
+            username: &config.user,
+            password: &config.secret,
+        })
+        .await?;
 
     DB.use_ns(&config.ns).use_db(&config.db).await?;
     Ok(())

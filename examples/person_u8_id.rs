@@ -1,6 +1,6 @@
-/// This is PROBLEMATIC !!!
-use nico_surreal_client::{DbConfig, setup};
 use nico_surreal_client::prelude::*;
+/// This is PROBLEMATIC !!!
+use nico_surreal_client::{setup, DbConfig};
 use surrealdb::sql::Id;
 
 const TEST_TABLE: &str = "test_table";
@@ -34,12 +34,14 @@ impl From<Record<Person>> for Person {
 
 impl Into<Record<Person>> for Person {
     fn into(self) -> Record<Person> {
-        Record::new(TEST_TABLE, Some(Id::from(1)), Some(Box::new(self.clone())))
+        Record::new(
+            Some(TEST_TABLE.to_string()), 
+            Some(Id::from(1)), 
+            Some(Box::new(self.clone())))
     }
 }
 
 impl Storable<Person> for Person {}
-
 
 // API Call or Factory
 fn person_factory(table: &str, id: Id, name: &str, age: u8) -> Option<Person> {
@@ -57,7 +59,7 @@ async fn main() -> Result<(), nico_surreal_client::Error> {
     let john = person_factory(TEST_TABLE, Id::from(1), "John", 32).unwrap();
     println!("Record John: {:?}", &john);
 
-    let _ = john.delete(&conf).await.await;
+    // let _ = john.delete(&conf).await.await?;
     let saved_john = john.save(&conf).await.await?;
     let selected_john = john.select(&conf).await.await?;
     let deleted_john = john.delete(&conf).await.await?;

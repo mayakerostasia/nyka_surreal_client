@@ -19,10 +19,10 @@ pub enum Record<T> {
 }
 
 impl<T: HasSurrealIdentifier> Record<T> {
-    pub fn new(tb: &str, id: Option<Id>, data: Option<Box<T>>) -> Self {
+    pub fn new(tb: Option<String>, id: Option<Id>, data: Option<Box<T>>) -> Self {
         match data {
             Some(data) => Record::RecordIdData(RecordIdData::new(tb, id, *data)),
-            None => Record::RecordId(SurrealID::new(Some(tb), id)),
+            None => Record::RecordId(SurrealID::new(tb, id)),
         }
     }
 
@@ -87,16 +87,23 @@ impl<T> RecordIdData<T> {
         }
     }
 
-    pub fn new(tb: &str, id: Option<Id>, data: T) -> Self {
-        match id {
-            Some(id) => RecordIdData {
-                id: SurrealID::from(Thing::from((tb, id.to_raw().as_str()))),
+    pub fn new(tb: Option<String>, id: Option<Id>, data: T) -> Self {
+        match (tb, id) {
+            (Some(tb), Some(id)) => RecordIdData {
+                id: SurrealID::from(Thing::from((tb.as_str(), id.to_string().as_str()))),
                 data: Some(data),
             },
-            None => RecordIdData {
-                id: SurrealID::from(Thing::from((tb, Id::rand().to_raw().as_str()))),
+            (Some(tb), None) => RecordIdData {
+                id: SurrealID::from(Thing::from((tb.as_str(), Id::rand().to_string().as_str()))),
                 data: Some(data),
             },
+            (None, Some(id)) => unimplemented!(
+                " Didn't provide Table info - Provided Table:None and {:?} ",
+                id
+            ),
+            (None, None) => unimplemented!(
+                " Didn't provide Table info - Provided Table:None and Id:None "
+            ),
         }
     }
 
