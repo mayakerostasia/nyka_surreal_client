@@ -37,7 +37,11 @@ pub trait SurrealIDFactory {
     }
 }
 
-pub trait HasSurrealIdentifier: SurrealIDTable + SurrealIDIdent {}
+// pub trait HasSurrealIdentifier: SurrealIDTable + SurrealIDIdent {}
+pub trait HasSurrealIdentifier {
+    fn id(&self) -> Id;
+    fn table(&self) -> String;
+}
 
 pub trait SurrealData
 where
@@ -48,38 +52,40 @@ where
     }
 }
 pub trait SurrealIDTable {
-    fn table(&self, create: bool) -> String;
+    fn table(&self) -> String;
 }
 pub trait SurrealIDIdent {
-    fn id(&self, create: bool) -> Id;
+    fn id(&self) -> Id;
 }
 
 impl SurrealIDFactory for SurrealID {}
 impl SurrealIDIdent for SurrealID {
-    fn id(&self, create: bool) -> Id {
+    fn id(&self) -> Id {
         // todo!( "SurrealID::id()" );
         match self {
             SurrealID::Thing(thing) => thing.id.clone(),
             SurrealID::TableId(_, id) => id.clone(),
             SurrealID::Id(id) => id.clone(),
-            _ => match create {
-                true => unimplemented!("    SurrealID::id( create ) "),
-                false => unimplemented!("    SurrealID::id( !create ) "),
-            }
+            _ => unimplemented!("SurrealID::id( !create ) ")
+            // match create {
+            //     true => unimplemented!("    SurrealID::id( create ) "),
+            //     false => unimplemented!("    SurrealID::id( !create ) "),
+            // }
         }
     }
 }
 impl SurrealIDTable for SurrealID {
-    fn table(&self, create: bool) -> String {
+    fn table(&self) -> String {
         // todo!(  "SurrealID::table()" );
         match self {
             SurrealID::Thing(thing) => thing.tb.clone(),
             SurrealID::Table(tb) => tb.clone(),
             SurrealID::TableId(tb, _) => tb.clone(),
-            _ => match create {
-                true => unimplemented!("    SurrealID::table( create ) "),
-                false => unimplemented!("    SurrealID::table( !create ) "),
-            }
+            _ => unimplemented!("SurrealID::table( !create ) ")
+            // _ => match create {
+            //     true => unimplemented!("    SurrealID::table( create ) "),
+            //     false => unimplemented!("    SurrealID::table( !create ) "),
+            // }
         }
         // self.tb.clone()
     }

@@ -60,10 +60,10 @@ pub mod prelude {
 
 pub async fn create_record<T>(record: Record<T>) -> Result<Vec<T>, Error>
 where
-    T: HasSurrealIdentifier + SurrealData + DBThings + From<Record<T>>,
+    T: DBThings + From<Record<T>>,
 {
     let created: Vec<T> = DB
-        .create(record.table(false))
+        .create(record.table())
         .content(record.data::<T>())
         .await?;
     Ok(created)
@@ -75,7 +75,7 @@ pub async fn updata_record<'a, T>(
     data: Option<T>,
 ) -> Result<Option<Record<T>>, Error>
 where
-    T: HasSurrealIdentifier + SurrealData + DBThings,
+    T: DBThings,
 {
     let updated: Option<Record<T>>;
     if let Some(data) = data {
@@ -88,7 +88,7 @@ where
 
 pub async fn get_record<T>(table: &str, id: Id) -> Result<Option<Record<T>>, Error>
 where
-    T: HasSurrealIdentifier + DBThings,
+    T: DBThings,
 {
     let _id = id.clone();
     println!("Getting record: {:?}:{:?}", &table, &_id);
@@ -100,35 +100,21 @@ where
         &_id.to_raw().to_string()
     );
 
-    let value: Result<Option<Record<T>>, Error> = DB
+    DB
         .select((table, _id.clone())) // Implement the IntoResource<T> trait for surrealdb::sql::Thing
         .await
         .map_err(|_e| Error::NoRecordFound {
             table: table.to_string(),
             id: id.to_string(),
             id_raw: id.to_raw(), // msg: e
-        });
-    println!("Got record: {:?}", &value);
-
-    value
-    // todo!();
+        })
 }
 
-pub async fn delete_record<T>(table: &str, id: Id) -> Result<T, Error>
+pub async fn delete_record<T>(table: &str, id: Id) -> Result<Option<T>, Error> 
 where
-    T: HasSurrealIdentifier + DBThings,
+    T: DBThings,
 {
-    let deleted: Option<T> = DB.delete((table, id.to_raw())).await?;
-    if let Some(deleted) = deleted {
-        Ok(deleted)
-    } else {
-        Err(Error::NoRecordFound {
-            table: table.to_string(),
-            id: id.to_string(),
-            id_raw: id.to_raw(),
-            // msg: Err(surrealdb::err::Error::NoRecordFound).expect_err(msg),
-        })
-    }
+    Ok(DB.delete((table, id.to_raw())).await?)
 }
 
 pub async fn query(query: &str) -> Result<Response, Error> {

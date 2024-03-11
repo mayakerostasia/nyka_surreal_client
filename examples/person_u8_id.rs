@@ -16,23 +16,31 @@ struct Person {
     name: String,
     age: u8,
 }
-impl Storable for Person {}
-impl SurrealIDIdent for Person {
-    fn id(&self, create: bool) -> Id {
-        self.id.id(create)
+impl Into<Record<Person>> for Person {
+    fn into(self) -> Record<Person> {
+        Record::from(self.into())
     }
 }
-impl SurrealIDTable for Person {
-    fn table(&self, create: bool) -> String {
-        self.id.table(create).to_string()
-    }
-}
+impl Storable<Person> for Person {}
+// impl SurrealIDIdent for Person {
+// }
+// impl SurrealIDTable for Person {
+// }
 impl DBThings for Person {}
-impl HasSurrealIdentifier for Person {}
-impl SurrealData for Person {}
+impl HasSurrealIdentifier for Person {
+    fn id(&self) -> Id {
+        self.id.id()
+    }
+    fn table(&self) -> String {
+        self.id.table().to_string()
+    }
+}
+
+// impl SurrealData for Person {}
+
 impl From<Record<Person>> for Person {
     fn from(record: Record<Person>) -> Self {
-        let id = record.id(false);
+        let id = record.id();
         println!("ID: {:?}", &id);
         let data = record.into_inner().unwrap();
         data
@@ -54,12 +62,11 @@ async fn main() -> Result<(), nico_surreal_client::Error> {
     // Record To Database
     let john = person_factory(TEST_TABLE, Id::from(1), "John", 32).unwrap();
     println!("Record John: {:?}", &john);
-    let _ = john.delete(&conf).await;
 
-    // let save_john = Record::from(john.clone());
-    let saved_john = (&john).clone().save(&conf).await;
-    let selected_john = &john.select(&conf).await?;
-    let deleted_john = &john.delete(&conf).await?;
+    let _ = john.delete(&conf).await;
+    let saved_john = john.save(&conf).await.await?;
+    let selected_john = john.select(&conf).await.await?;
+    let deleted_john = john.delete(&conf).await.await?;
 
     // Some Logging
     println!("Created -> Yes");
