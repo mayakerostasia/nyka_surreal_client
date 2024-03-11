@@ -62,27 +62,25 @@ where
 
             let id: Option<(String, Map<String, JValue>)> = map.next_entry()?;
 
-            let mut _id: Option<Id> = None;
-            match id {
+            let _id = match id {
                 Some((key, value)) => {
-                    // info!("Key: {:#?}", key);
                     loop {
                         let entry = value.get("id");
                         if let Some(entry) = entry {
-                            println!("Attempting to deserialize: {:#?}", entry);
+                            eprintln!("Attempting to deserialize: {:#?}", entry);
                             match entry {
                                 JValue::Array(arr) => {
                                     info!("Array: {:#?}", arr);
                                     // _id = Some(Id::Array(arr));
-                                    unimplemented!();
+                                    unimplemented!("Array: {:#?}", arr);
                                 }
                                 JValue::Bool(boole) => {
                                     info!("Bool: {:#?}", boole);
-                                    unimplemented!();
+                                    unimplemented!("Bool: {:#?}", boole);
                                 }
                                 JValue::Number(num) => {
                                     // info!("Number: {:#?}", num);
-                                    _id = Some(Id::Number(num.as_i64().expect("Here")));
+                                    Id::Number(num.as_i64().expect("Failed to get i64 from number"));
                                 }
                                 JValue::Object(obj) => {
                                     // info!("Object: {:#?}", obj);
@@ -91,19 +89,19 @@ where
                                 }
                                 JValue::String(str) => {
                                     // info!("String: {:#?}", str);
-                                    _id = Some(Id::String(str.as_str().to_string()));
+                                    Id::String(str.as_str().to_string());
                                 }
                                 JValue::Null => {
                                     info!("Null: {:#?}", "Null");
-                                    unimplemented!();
+                                    unimplemented!("Null: {:#?}", "Null");
                                 }
                             }
                         } else {
-                            // info!("No id");
+                            eprintln!("No entry");
                             break;
                         }
                     }
-                    let sid: SurrealId = SurrealId(Thing::from((table.expect("Failed to get table"), _id.expect("Failed to ID"))));
+                    let sid: SurrealId = SurrealId(Thing::from((table.expect("Failed to get table"), _id)));
                     Ok(sid)
                 }
                 None => Err(serde::de::Error::custom("No id")),
