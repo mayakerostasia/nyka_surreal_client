@@ -3,10 +3,12 @@
 #[allow(unused_imports)]
 use rs_nico_tracing::{ info, error, debug , instrument, Instrument };
 use serde::{de, Deserializer};
-use serde_json::{Map, Value as JValue};
-use surrealdb::sql::{Id, Thing};
+use serde_json::{Value as JValue};
+use surrealdb::sql::{Id, Object, Table, Thing, Value};
 
 use crate::SurrealId;
+
+struct DeserMap<K,V>(K, V);
 
 pub fn deserialize_id<'de, D>(deserializer: D) -> Result<SurrealId, D::Error>
 where
@@ -57,49 +59,16 @@ where
             let mut table: Option<String> = None;
             let mut id: Option<Id> = None;
 
-            while let Some((str, j_value)) = map.next_entry::<String, Map<String, JValue>>()? {
+            while let Some((str, j_value)) = map.next_entry::<String, Object>()? {
                 debug!("Key: {:#?}, Value: {:#?}", str, j_value);
                 let done = match str.as_ref() {
                     "tb" => {
-                        debug!("TB -> Key: {:#?}, Value: {:#?}", str, j_value);
-                        table = None;
+                        table = j_value.0.get_key_value("Strand").map(|s| s.1.to_string());
+
+                        // table = j_value.0.get_key_value("").as_str().map(|s| s.to_string());
                     }
                     "id" => {
-                        debug!("ID -> Key: {:#?}, Value: {:#?}", str, j_value);
-                        let entry = j_value.get("id");
-                        if let Some(entry) = entry {
-                            debug!("Attempting to deserialize: {:#?}", entry);
-                            let _id = match entry {
-                                JValue::Array(arr) => {
-                                    debug!("Array: {:#?}", arr);
-                                    // _id = Some(Id::Array(arr));
-                                    unimplemented!("Array: {:#?}", arr);
-                                }
-                                JValue::Bool(boole) => {
-                                    debug!("Bool: {:#?}", boole);
-                                    unimplemented!("Bool: {:#?}", boole);
-                                }
-                                JValue::Number(num) => {
-                                    // info!("Number: {:#?}", num);
-                                    Id::Number(num.as_i64().expect("Failed to get i64 from number"))
-                                }
-                                JValue::Object(obj) => {
-                                    debug!("Object: {:#?}", obj);
-                                    // _id = Some(Id::Object(surrealdb::sql::Object(obj)))
-                                    unimplemented!( "Object: {:#?}", obj );
-                                }
-                                JValue::String(str) => {
-                                    // info!("String: {:#?}", str);
-                                    Id::String(str.as_str().to_string())
-                                }
-                                JValue::Null => {
-                                    debug!("Null: {:#?}", "Null");
-                                    unimplemented!("Null: {:#?}", "Null");
-                                }
-                            };
-
-                            id = Some(_id);
-                        }
+                        id = Some(Id::from(j_value))
                     }
                     _ => {
                         debug!("Other -> Key: {:#?}, Value: {:#?}", str, j_value);
@@ -182,8 +151,8 @@ mod tests {
             println!("Input as Thing: {:#?}", id);
             let thing_as_str = serde_json::to_string(id).unwrap();
             println!("Input as Str: {:#?}", thing_as_str);
-            let old_id_str: Result<JValue, serde_json::Error> = serde_json::from_str(&thing_as_str);
-            let deser_id: JValue = match old_id_str {
+            let old_id_str: Result<SurrealId, serde_json::Error> = serde_json::from_str(&thing_as_str);
+            let deser_id: SurrealId = match old_id_str {
                 Ok(id) => {
                     id
                 },
