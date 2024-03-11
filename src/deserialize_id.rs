@@ -1,12 +1,14 @@
 // "⟩"
 
-use rs_nico_tracing::info;
+#[allow(unused_imports)]
+use rs_nico_tracing::{ info, error, debug , instrument, Instrument };
 use serde::Deserializer;
 use serde_json::{Map, Value as JValue};
 use surrealdb::sql::{Id, Thing};
 
 use crate::SurrealId;
 
+#[instrument(skip(deserializer))]
 pub fn deserialize_id<'de, D>(deserializer: D) -> Result<SurrealId, D::Error>
 where
     D: Deserializer<'de>,
@@ -17,7 +19,7 @@ where
         type Value = SurrealId;
 
         fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
-            println!("Here at expecting");
+            debug!("Here at expecting");
             formatter.write_str("well shit bitch... someone went and shit in my oven")
         }
 
@@ -34,7 +36,7 @@ where
         where
             E: serde::de::Error,
         {
-            println!("Here at i64");
+            debug!("Here at i64");
             let sid: SurrealId = SurrealId(Thing::from(("_", Id::from(value))));
             Ok(sid)
         }
@@ -43,7 +45,7 @@ where
         where
             E: serde::de::Error,
         {
-            println!("Here at u64");
+            debug!("Here at u64");
             let sid: SurrealId = SurrealId(Thing::from(("_", Id::from(value))));
             Ok(sid)
         }
@@ -67,15 +69,15 @@ where
                     loop {
                         let entry = value.get("id");
                         if let Some(entry) = entry {
-                            eprintln!("Attempting to deserialize: {:#?}", entry);
+                            debug!("Attempting to deserialize: {:#?}", entry);
                             let id = match entry {
                                 JValue::Array(arr) => {
-                                    info!("Array: {:#?}", arr);
+                                    debug!("Array: {:#?}", arr);
                                     // _id = Some(Id::Array(arr));
                                     unimplemented!("Array: {:#?}", arr);
                                 }
                                 JValue::Bool(boole) => {
-                                    info!("Bool: {:#?}", boole);
+                                    debug!("Bool: {:#?}", boole);
                                     unimplemented!("Bool: {:#?}", boole);
                                 }
                                 JValue::Number(num) => {
@@ -83,7 +85,7 @@ where
                                     Id::Number(num.as_i64().expect("Failed to get i64 from number"))
                                 }
                                 JValue::Object(obj) => {
-                                    // info!("Object: {:#?}", obj);
+                                    debug!("Object: {:#?}", obj);
                                     // _id = Some(Id::Object(surrealdb::sql::Object(obj)))
                                     unimplemented!( "Object: {:#?}", obj );
                                 }
@@ -92,7 +94,7 @@ where
                                     Id::String(str.as_str().to_string())
                                 }
                                 JValue::Null => {
-                                    info!("Null: {:#?}", "Null");
+                                    debug!("Null: {:#?}", "Null");
                                     unimplemented!("Null: {:#?}", "Null");
                                 }
                             };
