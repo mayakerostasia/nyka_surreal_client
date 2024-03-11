@@ -1784,6 +1784,7 @@ dependencies = [
  "tokio",
  "tokio-tower",
  "tower",
+ "tracing",
 ]
 
 [[package]]
