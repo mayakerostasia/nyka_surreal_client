@@ -1,9 +1,16 @@
+use std::fmt::Display;
 use surrealdb::sql::Thing;
 use serde::{Deserialize, Serialize};
 
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct SurrealId(pub Thing);
+
+impl Display for SurrealId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:#?}", self.0)
+    }
+}
 
 // pub trait SurrealIDFactory {
 //     fn create(tb: &str, id: &str) -> SurrealID {
