@@ -3,18 +3,18 @@
 use rs_nico_tracing::info;
 use serde::Deserializer;
 use serde_json::{Map, Value as JValue};
-use surrealdb::sql::Id;
+use surrealdb::sql::{Id, Thing};
 
-use crate::SurrealID;
+use crate::SurrealId;
 
-pub fn deserialize_id<'de, D>(deserializer: D) -> Result<SurrealID, D::Error>
+pub fn deserialize_id<'de, D>(deserializer: D) -> Result<SurrealId, D::Error>
 where
     D: Deserializer<'de>,
 {
     struct Visitor;
 
     impl<'de> serde::de::Visitor<'de> for Visitor {
-        type Value = SurrealID;
+        type Value = SurrealId;
 
         fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
             println!("Here at expecting");
@@ -26,7 +26,8 @@ where
             E: serde::de::Error,
         {
             let str_val = value.parse::<String>().expect("In string");
-            Ok(SurrealID::from(("_".to_string(), str_val)))
+            let thing = Thing::from(("_", str_val.as_str()));
+            Ok(SurrealId(thing))
         }
 
         fn visit_i64<E>(self, value: i64) -> Result<Self::Value, E>
@@ -34,7 +35,7 @@ where
             E: serde::de::Error,
         {
             println!("Here at i64");
-            let sid: SurrealID = SurrealID::new(None, Some(Id::from(value)));
+            let sid: SurrealId = SurrealId(Thing::from(("_", Id::from(value))));
             Ok(sid)
         }
 
@@ -43,7 +44,7 @@ where
             E: serde::de::Error,
         {
             println!("Here at u64");
-            let sid: SurrealID = SurrealID::new(None, Some(Id::from(value)));
+            let sid: SurrealId = SurrealId(Thing::from(("_", Id::from(value))));
             Ok(sid)
         }
 
@@ -101,7 +102,7 @@ where
                             break;
                         }
                     }
-                    let sid: SurrealID = SurrealID::new(table, _id);
+                    let sid: SurrealId = SurrealId(Thing::from((table.expect("Failed to get table"), _id.expect("Failed to ID"))));
                     Ok(sid)
                 }
                 None => Err(serde::de::Error::custom("No id")),

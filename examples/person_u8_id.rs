@@ -10,19 +10,11 @@ const TEST_PERSON: &str = "test_person";
 #[allow(dead_code)]
 #[derive(Debug, Deserialize, Serialize, Clone)]
 struct Person {
-    id: SurrealID,
+    id: SurrealId,
     name: String,
     age: u8,
 }
 impl DBThings for Person {}
-impl HasSurrealIdentifier for Person {
-    fn id(&self) -> Id {
-        self.id.id()
-    }
-    fn table(&self) -> String {
-        self.id.table().to_string()
-    }
-}
 
 impl From<Record<Person>> for Person {
     fn from(record: Record<Person>) -> Self {
@@ -46,7 +38,7 @@ impl Storable<Person> for Person {}
 // API Call or Factory
 fn person_factory(table: &str, id: Id, name: &str, age: u8) -> Option<Person> {
     Some(Person {
-        id: SurrealID::Thing(Thing::from((table, id))),
+        id: SurrealId(Thing::from((table, id))),
         name: name.to_string(),
         age: age,
     })

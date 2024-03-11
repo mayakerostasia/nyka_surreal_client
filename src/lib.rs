@@ -11,8 +11,8 @@ mod storable;
 pub use config::{setup, DbConfig};
 pub use deserialize_id::deserialize_id;
 pub use error::Error;
-pub use ident::SurrealID;
-pub use ident::{HasSurrealIdentifier, SurrealData, SurrealIDIdent, SurrealIDTable};
+pub use ident::SurrealId;
+// pub use ident::{HasSurrealIdentifier, SurrealData, SurrealIDIdent, SurrealIDTable};
 use once_cell::sync::Lazy;
 pub use record::Record;
 pub use serde::{Deserialize, Serialize};
@@ -41,14 +41,14 @@ pub mod prelude {
         DBThings,
         Deserialize,
         Error,
-        HasSurrealIdentifier,
+        // HasSurrealIdentifier,
         Record,
         Serialize,
         Storable,
-        SurrealData,
-        SurrealID,
-        SurrealIDIdent,
-        SurrealIDTable,
+        // SurrealData,
+        SurrealId,
+        // SurrealIDIdent,
+        // SurrealIDTable,
     };
 }
 
@@ -58,7 +58,7 @@ where
 {
     let created: Vec<T> = DB
         .create(record.table())
-        .content(record.data::<T>())
+        .content(record.data())
         .await?;
     Ok(created)
 }
@@ -87,10 +87,6 @@ where
 {
     let _id = record.id();
     let table = record.table();
-    // let _id = id.clone();
-    println!("Getting record: {:?}:{:?}", &table, &_id);
-    println!("Getting record: {:?}:{:?}", &table, &_id.to_raw());
-    println!("Getting record: {:?}:{:?}", &table, &_id.to_string());
     println!(
         "Getting record: {:?}:{:?}",
         &table,
