@@ -66,7 +66,7 @@ where
             let mut id: Option<Id> = None;
 
             while let Some((str, j_value)) = map.next_entry::<String, Map<String, JValue>>()? {
-                match str.as_str() {
+                match str.as_ref() {
                     "tb" => {
                         debug!("TB -> Key: {:#?}, Value: {:#?}", str, j_value);
 
@@ -81,7 +81,7 @@ where
                         let entry = j_value.get("id");
                         if let Some(entry) = entry {
                             debug!("Attempting to deserialize: {:#?}", entry);
-                            let id = match entry {
+                            let _id = match entry {
                                 JValue::Array(arr) => {
                                     debug!("Array: {:#?}", arr);
                                     // _id = Some(Id::Array(arr));
@@ -110,10 +110,15 @@ where
                                 }
                             };
 
-                            let thing = Thing::from((table.expect(format!("What! Table wasn't set? Here's the id : ({})", &id).as_str()), id));
-                            let sid = SurrealId(thing);
-                            id = Some(sid);
+                            id = Some(_id);
+                            // let thing = Thing::from((table.expect(format!("What! Table wasn't set? Here's the id : ({})", &_id).as_str()), _id));
+                            // let sid = SurrealId(thing);
+                            // id = Some(sid);
                         }
+                    }
+                    _ => {
+                        debug!("Other -> Key: {:#?}, Value: {:#?}", str, j_value);
+                        unimplemented!("Other -> Key: {:#?}, Value: {:#?}", str, j_value);
                     }
                 }
             };
