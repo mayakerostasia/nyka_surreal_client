@@ -69,6 +69,7 @@ where
                     loop {
                         let entry = value.get("id");
                         if let Some(entry) = entry {
+                            println!("Attempting to deserialize: {:#?}", entry);
                             match entry {
                                 JValue::Array(arr) => {
                                     info!("Array: {:#?}", arr);
