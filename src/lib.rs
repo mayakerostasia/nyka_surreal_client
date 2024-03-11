@@ -86,11 +86,14 @@ where
     Ok(updated)
 }
 
-pub async fn get_record<T>(table: &str, id: Id) -> Result<Option<Record<T>>, Error>
+pub async fn get_record<T>(record: Record<T>) -> Result<Option<Record<T>>, Error>
+// pub async fn get_record<T>(table: &str, id: Id) -> Result<Option<Record<T>>, Error>
 where
     T: DBThings,
 {
-    let _id = id.clone();
+    let _id = record.id();
+    let table = record.table();
+    // let _id = id.clone();
     println!("Getting record: {:?}:{:?}", &table, &_id);
     println!("Getting record: {:?}:{:?}", &table, &_id.to_raw());
     println!("Getting record: {:?}:{:?}", &table, &_id.to_string());
@@ -101,20 +104,21 @@ where
     );
 
     DB
-        .select((table, _id.clone())) // Implement the IntoResource<T> trait for surrealdb::sql::Thing
+        .select((&table, _id.clone())) // Implement the IntoResource<T> trait for surrealdb::sql::Thing
         .await
         .map_err(|_e| Error::NoRecordFound {
             table: table.to_string(),
-            id: id.to_string(),
-            id_raw: id.to_raw(), // msg: e
+            id: _id.to_string(),
+            id_raw: _id.to_raw(), // msg: e
         })
 }
 
-pub async fn delete_record<T>(table: &str, id: Id) -> Result<Option<T>, Error> 
+pub async fn delete_record<T>(record: Record<T>) -> Result<Option<T>, Error> 
+// pub async fn delete_record<T>(table: &str, id: Id) -> Result<Option<T>, Error> 
 where
     T: DBThings,
 {
-    Ok(DB.delete((table, id.to_raw())).await?)
+    Ok(DB.delete((record.table(), record.id().to_raw())).await?)
 }
 
 pub async fn query(query: &str) -> Result<Response, Error> {

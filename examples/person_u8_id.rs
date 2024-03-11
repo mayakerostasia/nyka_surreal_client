@@ -11,21 +11,9 @@ const TEST_PERSON: &str = "test_person";
 #[derive(Debug, Deserialize, Serialize, Clone)]
 struct Person {
     id: SurrealID,
-    /// surrealdb::sql::Id
-    // table: String,
     name: String,
     age: u8,
 }
-impl Into<Record<Person>> for Person {
-    fn into(self) -> Record<Person> {
-        Record::from(self.into())
-    }
-}
-impl Storable<Person> for Person {}
-// impl SurrealIDIdent for Person {
-// }
-// impl SurrealIDTable for Person {
-// }
 impl DBThings for Person {}
 impl HasSurrealIdentifier for Person {
     fn id(&self) -> Id {
@@ -36,16 +24,22 @@ impl HasSurrealIdentifier for Person {
     }
 }
 
-// impl SurrealData for Person {}
-
 impl From<Record<Person>> for Person {
     fn from(record: Record<Person>) -> Self {
         let id = record.id();
         println!("ID: {:?}", &id);
-        let data = record.into_inner().unwrap();
-        data
+        record.into_inner().unwrap()
     }
 }
+
+impl Into<Record<Person>> for Person {
+    fn into(self) -> Record<Person> {
+        Record::new(TEST_TABLE, Some(Id::from(1)), Some(Box::new(self.clone())))
+    }
+}
+
+impl Storable<Person> for Person {}
+
 
 // API Call or Factory
 fn person_factory(table: &str, id: Id, name: &str, age: u8) -> Option<Person> {
@@ -63,7 +57,7 @@ async fn main() -> Result<(), nico_surreal_client::Error> {
     let john = person_factory(TEST_TABLE, Id::from(1), "John", 32).unwrap();
     println!("Record John: {:?}", &john);
 
-    let _ = john.delete(&conf).await;
+    let _ = john.delete(&conf).await.await;
     let saved_john = john.save(&conf).await.await?;
     let selected_john = john.select(&conf).await.await?;
     let deleted_john = john.delete(&conf).await.await?;

@@ -5,8 +5,6 @@ use async_trait::async_trait;
 use serde::{de::DeserializeOwned, Serialize};
 
 use crate::DbConfig;
-use crate::ident::HasSurrealIdentifier;
-use crate::ident::SurrealData;
 use crate::prelude::*;
 use futures_lite::Future;
 use crate::Error;
@@ -23,20 +21,19 @@ where
         // todo!();
         let _ = connect(config).await.ok();
         let record: Record<T> = <Self as Into<Record<T>>>::into(self.clone());
-        Box::pin(async move { create_record(record).await })
+        Box::pin(create_record(record))
     }
 
     async fn select(&self, config: &DbConfig) -> Pin<Box< dyn Future< Output = Result<Option<Record<T>>, Error>>  >> {
         let _ = connect(config).await.ok();
         let record: Record<T> = <Self as Into<Record<T>>>::into(self.clone());
-        Box::pin(async move { get_record(&record.table(), record.id()).await } )
+        Box::pin(get_record(record))
     }
 
-    async fn delete(&self, config: &DbConfig) -> Pin<Box<dyn Future<Output = Result< Option<Record<T>>, Error>> >> {
+    async fn delete(&self, config: &DbConfig) -> Pin<Box<dyn Future<Output = Result< Option<T>, Error>> >> {
         let _ = connect(config).await.ok();
         let record: Record<T> = <Self as Into<Record<T>>>::into(self.clone());
-        // let rec =  
-        Box::pin(async move { delete_record(&record.table(), record.id()).await })
+        Box::pin(delete_record(record))
     }
 }
 
