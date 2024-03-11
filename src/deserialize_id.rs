@@ -59,11 +59,11 @@ where
             let mut table: Option<String> = None;
             let mut id: Option<Id> = None;
 
-            while let Some((str, j_value)) = map.next_entry::<String, Object>()? {
+            while let Some((str, j_value)) = map.next_entry::<String, String>()? {
                 debug!("Key: {:#?}, Value: {:#?}", str, j_value);
                 let done = match str.as_ref() {
                     "tb" => {
-                        table = j_value.0.get_key_value("Strand").map(|s| s.1.to_string());
+                        table = Some(j_value);
 
                         // table = j_value.0.get_key_value("").as_str().map(|s| s.to_string());
                     }
