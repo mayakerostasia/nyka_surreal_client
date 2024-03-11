@@ -6,19 +6,16 @@ mod ident;
 mod record;
 mod storable;
 
-// use config::DbConfig;
-// use creds::Credentials;
 pub use config::{setup, DbConfig};
 pub use deserialize_id::deserialize_id;
 pub use error::Error;
 pub use ident::SurrealId;
-// pub use ident::{HasSurrealIdentifier, SurrealData, SurrealIDIdent, SurrealIDTable};
 use once_cell::sync::Lazy;
 pub use record::Record;
 pub use serde::{Deserialize, Serialize};
 pub use storable::{DBThings, Storable};
 use surrealdb::opt::auth::Root;
-use surrealdb::{engine::any::Any, opt::auth::Jwt, sql::Id, Response, Surreal};
+use surrealdb::{engine::any::Any, opt::auth::Jwt, Response, Surreal};
 
 static DB: Lazy<Surreal<Any>> = Lazy::new(Surreal::init);
 
@@ -56,26 +53,44 @@ pub async fn create_record<T>(record: Record<T>) -> Result<Vec<T>, Error>
 where
     T: DBThings + From<Record<T>>,
 {
+    let _id = record.id();
+    let table = record.table();
+
+    if table == "_" {
+        return Err(Error::TableNameUnset);
+    }
+    let data = record.data();
+
+    if data.is_none() {
+        return Err(Error::NoDataStored("No data stored in record".to_string()));
+    }
+
     let created: Vec<T> = DB
-        .create(record.table())
-        .content(record.data())
+        .create(table)
+        .content(data.unwrap())
         .await?;
     Ok(created)
 }
 
 pub async fn updata_record<'a, T>(
-    table: &str,
-    id: &str,
-    data: Option<T>,
+    record: Record<T>,
 ) -> Result<Option<Record<T>>, Error>
 where
     T: DBThings,
 {
     let updated: Option<Record<T>>;
-    if let Some(data) = data {
-        updated = DB.update((table, id)).content(data).await?;
+
+    let _id = record.id();
+    let table = record.table();
+
+    if table == "_" {
+        return Err(Error::TableNameUnset);
+    }
+
+    if let Some(data) = record.data() {
+        updated = DB.update((table, _id)).content(data).await?;
     } else {
-        updated = DB.update((table, id)).await?;
+        updated = DB.update((table, _id)).await?;
     }
     Ok(updated)
 }
@@ -87,6 +102,11 @@ where
 {
     let _id = record.id();
     let table = record.table();
+
+    if table == "_" {
+        return Err(Error::TableNameUnset);
+    }
+
     println!(
         "Getting record: {:?}:{:?}",
         &table,
@@ -107,7 +127,15 @@ pub async fn delete_record<T>(record: Record<T>) -> Result<Option<T>, Error>
 where
     T: DBThings,
 {
-    Ok(DB.delete((record.table(), record.id().to_raw())).await?)
+    let table = record.table();
+
+    if table == "_" {
+        return Err(Error::TableNameUnset);
+    }
+
+    let id = record.id();
+    
+    Ok(DB.delete((table, id)).await?)
 }
 
 pub async fn query(query: &str) -> Result<Response, Error> {

@@ -39,6 +39,9 @@ pub enum Error {
 
     #[error("No Data stored in Record! {0}")]
     NoDataStored(String),
+
+    #[error("Table name cannot be unset")]
+    TableNameUnset,
 }
 
 // impl From<PoisonError<RwLockReadGuard<'_, DBClient>>> for Error {
