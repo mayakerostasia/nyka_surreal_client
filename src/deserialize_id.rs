@@ -62,13 +62,13 @@ where
 
             let id: Option<(String, Map<String, JValue>)> = map.next_entry()?;
 
-            let _id = match id {
-                Some((key, value)) => {
+            match id {
+                Some((_, value)) => {
                     loop {
                         let entry = value.get("id");
                         if let Some(entry) = entry {
                             eprintln!("Attempting to deserialize: {:#?}", entry);
-                            match entry {
+                            let id = match entry {
                                 JValue::Array(arr) => {
                                     info!("Array: {:#?}", arr);
                                     // _id = Some(Id::Array(arr));
@@ -80,29 +80,30 @@ where
                                 }
                                 JValue::Number(num) => {
                                     // info!("Number: {:#?}", num);
-                                    Id::Number(num.as_i64().expect("Failed to get i64 from number"));
+                                    Id::Number(num.as_i64().expect("Failed to get i64 from number"))
                                 }
                                 JValue::Object(obj) => {
                                     // info!("Object: {:#?}", obj);
                                     // _id = Some(Id::Object(surrealdb::sql::Object(obj)))
-                                    unimplemented!();
+                                    unimplemented!( "Object: {:#?}", obj );
                                 }
                                 JValue::String(str) => {
                                     // info!("String: {:#?}", str);
-                                    Id::String(str.as_str().to_string());
+                                    Id::String(str.as_str().to_string())
                                 }
                                 JValue::Null => {
                                     info!("Null: {:#?}", "Null");
                                     unimplemented!("Null: {:#?}", "Null");
                                 }
-                            }
+                            };
+
+                            let thing = Thing::from((table.expect(format!("What! Table wasn't set? Here's the id : ({})", &id).as_str()), id));
+                            let sid = SurrealId(thing);
+                            break Ok(sid);
                         } else {
-                            eprintln!("No entry");
-                            break;
+                            continue;
                         }
                     }
-                    let sid: SurrealId = SurrealId(Thing::from((table.expect("Failed to get table"), _id)));
-                    Ok(sid)
                 }
                 None => Err(serde::de::Error::custom("No id")),
             }
