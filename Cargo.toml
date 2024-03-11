@@ -33,5 +33,6 @@ tracing = "0.1.40"
 tower = ["dep:tokio-tower", "dep:tower"]   
 
 [dev-dependencies]
+lazy_static = "1.4.0"
 # surrealdb-migrations = "1.2.2"
 # surrealdb = ["dep:surrealdb"]

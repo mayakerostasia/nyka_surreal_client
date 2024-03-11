@@ -8,7 +8,6 @@ use surrealdb::sql::{Id, Thing};
 
 use crate::SurrealId;
 
-#[instrument(skip(deserializer))]
 pub fn deserialize_id<'de, D>(deserializer: D) -> Result<SurrealId, D::Error>
 where
     D: Deserializer<'de>,
@@ -50,31 +49,20 @@ where
             Ok(sid)
         }
 
+        #[instrument(skip(self, map))]
         fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
         where
             A: serde::de::MapAccess<'de>,
         {
-            // let _table: Option<(String, String)> = map.next_entry()?;
-
-            // let table = if let Some((key, value)) = _table {
-            //     Some(value)
-            // } else {
-            //     None
-            // };
-
             let mut table: Option<String> = None;
             let mut id: Option<Id> = None;
 
             while let Some((str, j_value)) = map.next_entry::<String, Map<String, JValue>>()? {
-                match str.as_ref() {
+                debug!("Key: {:#?}, Value: {:#?}", str, j_value);
+                let done = match str.as_ref() {
                     "tb" => {
                         debug!("TB -> Key: {:#?}, Value: {:#?}", str, j_value);
-
-                        let table = if let value = j_value {
-                            debug!("TB -> Value: {:#?}", value);
-                        } else {
-                            table = None;
-                        };
+                        table = None;
                     }
                     "id" => {
                         debug!("ID -> Key: {:#?}, Value: {:#?}", str, j_value);
@@ -111,18 +99,23 @@ where
                             };
 
                             id = Some(_id);
-                            // let thing = Thing::from((table.expect(format!("What! Table wasn't set? Here's the id : ({})", &_id).as_str()), _id));
-                            // let sid = SurrealId(thing);
-                            // id = Some(sid);
                         }
                     }
                     _ => {
                         debug!("Other -> Key: {:#?}, Value: {:#?}", str, j_value);
-                        unimplemented!("Other -> Key: {:#?}, Value: {:#?}", str, j_value);
+                        return Err(de::Error::custom("Unexpected key"));
                     }
-                }
+                };
+                println!("Done: {:#?}", done);
             };
-            todo!("Finish deserialize_id");
+
+            let thing = Thing {
+                tb: table.expect("Failed to get table"),
+                id: id.expect("Failed to get id"),
+            };
+
+            Ok(SurrealId(thing))
+
         }
     }
     deserializer.deserialize_any(Visitor)
@@ -130,55 +123,78 @@ where
 
 #[cfg(test)]
 mod tests {
-    // use super::*;
-    use std::collections::{BTreeMap, HashMap};
-    use std::iter;
+    use super::*;
 
+    use once_cell::sync::Lazy;
     use serde_json;
-    use surrealdb::sql::{Object, Value};
+    use serde::Serialize;
+    use serde::Deserialize; 
+    use crate::prelude::{SurrealId, Thing, Id, DBThings};
+    use crate::{setup, Record, Storable};
 
-    #[test]
-    fn test_deserialize_id() -> Result<(), serde_json::Error> {
-        let hm: HashMap<String, Value> =
-            HashMap::from([("id".to_string(), Value::from("1".to_string()))]);
-        let obj = Object::from(hm);
-        let mut btree: BTreeMap<String, Value> = BTreeMap::new();
-        btree.extend(iter::once(("id".to_string(), Value::Object(obj))));
-        println!("BTree Is {:?}", btree);
-        let thingy: Value = Value::Object(Object(btree));
-        println!("Thingy is {:?}", thingy);
-        // let as_sdb_value: SurrealID = Thing::from(btree);
-        // println!("SDB_val = {:?}", as_sdb_value);
-        // let sid = SurrealID(Thing::from(as_sdb_value));
-        // let _sid = match sid {
+    use lazy_static::lazy_static;
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    struct Dummy {
+        id: SurrealId,
+    }
 
-        // }
-        // let id: SurrealID = serde_json::from_value(thingy);
-        // println!("{:?}", sid);
-        // let id: SurrealID = serde_json::from_value(thingy).unwrap();
-        // println!("{:?}", id);
-        // let id: SurrealID = serde_json::from_(json).unwrap();
-        // assert_eq!(id.0.id, Id::String("1".to_string()));
+    impl DBThings for Dummy {}
+    impl Storable<Dummy> for Dummy {}
 
-        // let json = r#"1"#;
-        // let id: SurrealID = serde_json::from_str(json).unwrap();
-        // assert_eq!(id.0.id, Id::String("1".to_string()));
+    impl From<Record<Dummy>> for Dummy {
+        fn from(record: Record<Dummy>) -> Self {
+            record.data().unwrap().clone()
+        }
+    }
 
-        // let json = r#"{"table": "default", "id": 1}"#;
-        // let id: SurrealID = serde_json::from_str(json).unwrap();
-        // assert_eq!(id.0.id, Id::String("1".to_string()));
+    impl Into<Record<Dummy>> for Dummy {
+        fn into(self) -> Record<Dummy> {
+            Record::new(Some(self.id.0.tb.clone()), Some(self.id.0.id.clone()), Some(Box::new(self)))
+        }
+    }
 
-        // let json = r#"{"table": "default", "id": "1"}"#;
-        // let id: SurrealID = serde_json::from_str(json).unwrap();
-        // assert_eq!(id.0.id, Id::String("1".to_string()));
+    lazy_static! { 
+        static ref TEST_ID: [Thing;13] = [ 
+            Thing {tb: "test".to_string(), id: Id::from("1".to_string())},
+            Thing {tb: "test".to_string(), id: Id::from("2".to_string())},
+            Thing {tb: "test".to_string(), id: Id::from("3".to_string())},
+            Thing {tb: "test".to_string(), id: Id::from("4".to_string())},
+            Thing {tb: "test".to_string(), id: Id::from("5".to_string())},
+            Thing {tb: "test".to_string(), id: Id::from("6".to_string())},
+            Thing {tb: "test".to_string(), id: Id::from("7".to_string())},
+            Thing {tb: "test".to_string(), id: Id::from("8".to_string())},
+            Thing {tb: "test".to_string(), id: Id::from("9".to_string())},
+            Thing {tb: "test".to_string(), id: Id::from("10".to_string())},
+            Thing {tb: "test".to_string(), id: Id::from("006367d3-1e51-47c5-8b56-43492cec95ee")},
+            Thing {tb: "test".to_string(), id: Id::from("006367d3-1e51-47c5-8b56-43492cec95ee")},
+            Thing {tb: "test".to_string(), id: Id::from("⟨006367d3-1e51-47c5-8b56-43492cec95ee⟩")},
+        ];
+    }
 
-        // let json = r#"{"table": "default", "id": 1, "name": "test"}"#;
-        // let id: SurrealID = serde_json::from_str(json).unwrap();
-        // assert_eq!(id.0.id, Id::String("1".to_string()));
+    #[tokio::test]
+    async fn test_deserialize_id() -> Result<(), serde_json::Error> {
+        // let otel = rs_nico_tracing::initialize();
+        let cfg = setup();
 
-        // let json = r#"{"table": "default", "id": "1", "name": "test"}"#;
-        // let id: SurrealID = serde_json::from_str(json).unwrap();
-        // assert_eq!(id.0.id, Id::String("1".to_string()));
+        let mut test_iter = TEST_ID.iter();
+
+        while let Some(id) = test_iter.next() {
+            println!("Input as Thing: {:#?}", id);
+            let thing_as_str = serde_json::to_string(id).unwrap();
+            println!("Input as Str: {:#?}", thing_as_str);
+            let old_id_str: Result<JValue, serde_json::Error> = serde_json::from_str(&thing_as_str);
+            let deser_id: JValue = match old_id_str {
+                Ok(id) => {
+                    id
+                },
+                Err(e) => {
+                    panic!("Failed to deserialize: {:#?}", e);
+                },
+                
+            };
+            // assert_eq!(*id, deser_id.0);
+        };
+
         Ok(())
     }
 }

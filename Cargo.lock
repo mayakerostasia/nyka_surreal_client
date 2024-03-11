@@ -1773,6 +1773,7 @@ dependencies = [
  "color-eyre",
  "futures-lite",
  "geo-types",
+ "lazy_static",
  "once_cell",
  "pin-project-lite",
  "rs-nico-tracing",

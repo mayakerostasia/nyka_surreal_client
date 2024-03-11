@@ -1,0 +1,84 @@
+warning: unused manifest key: dependencies.surrealdb.ref
+warning: unreachable pattern
+  --> src\record.rs:26:13
+   |
+26 |             _ => unimplemented!(    "Record::new( {:?}, {:?} )", tb, id ) ,
+   |             ^
+   |
+   = note: `#[warn(unreachable_patterns)]` on by default
+
+warning: struct `DBGuard` is never constructed
+   --> src\lib.rs:159:8
+    |
+159 | struct DBGuard {
+    |        ^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` on by default
+
+warning: associated items `new` and `token` are never used
+   --> src\lib.rs:163:8
+    |
+162 | impl DBGuard {
+    | ------------ associated items in this implementation
+163 |     fn new(token: Jwt) -> Self {
+    |        ^^^
+...
+167 |     fn token(self) -> Jwt {
+    |        ^^^^^
+
+warning: unused import: `super::*`
+   --> src\deserialize_id.rs:133:9
+    |
+133 |     use super::*;
+    |         ^^^^^^^^
+    |
+    = note: `#[warn(unused_imports)]` on by default
+
+warning: unused import: `once_cell::sync::Lazy`
+   --> src\deserialize_id.rs:135:9
+    |
+135 |     use once_cell::sync::Lazy;
+    |         ^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused variable: `cfg`
+   --> src\deserialize_id.rs:183:13
+    |
+183 |         let cfg = setup();
+    |             ^^^ help: if this is intentional, prefix it with an underscore: `_cfg`
+    |
+    = note: `#[warn(unused_variables)]` on by default
+
+warning: `nico_surreal_client` (lib) generated 3 warnings
+warning: `nico_surreal_client` (lib test) generated 6 warnings (3 duplicates) (run `cargo fix --lib -p nico_surreal_client --tests` to apply 3 suggestions)
+warning: unused import: `DbConfig`
+ --> examples\person_u8_id.rs:3:34
+  |
+3 | use nico_surreal_client::{setup, DbConfig};
+  |                                  ^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: unused import: `std::fs`
+ --> examples\migrate.rs:1:5
+  |
+1 | use std::fs;
+  |     ^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: unused import: `std::io::Read`
+ --> examples\migrate.rs:2:5
+  |
+2 | use std::io::Read;
+  |     ^^^^^^^^^^^^^
+
+warning: unused import: `std::path::Path`
+ --> examples\migrate.rs:3:5
+  |
+3 | use std::path::Path;
+  |     ^^^^^^^^^^^^^^^
+
+warning: `nico_surreal_client` (example "person_u8_id") generated 1 warning (run `cargo fix --example "person_u8_id"` to apply 1 suggestion)
+warning: `nico_surreal_client` (example "migrate") generated 3 warnings (run `cargo fix --example "migrate"` to apply 3 suggestions)
+    Finished test [unoptimized + debuginfo] target(s) in 0.59s
+     Running unittests src\lib.rs (target\debug\deps\nico_surreal_client-4dd918012e13e663.exe)
