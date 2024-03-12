@@ -1,33 +1,32 @@
 use std::fmt::Display;
-use surrealdb::{opt::Resource, sql::Thing};
+use color_eyre::owo_colors::OwoColorize;
+use surrealdb::{sql::Value, opt::Resource, sql::Thing, sql::Object};
 use serde::{Deserialize, Serialize, Deserializer};
 
 
-#[derive(Debug, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct SurrealId(pub Thing);
 
 impl Display for SurrealId {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:#?}", self.0)
+        write!(f, "{}", self.0)
     }
 }
 
-impl<'de> Deserialize<'de> for SurrealId {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let src = Resource::deserialize(deserializer)?;
-        match src {
-            Resource::RecordId(id) => Ok(SurrealId(id)),
-            Resource::Object(obj) => {
-                let thing = Thing::deserialize(obj)?;
-                Ok(SurrealId(thing))
-            },
-            _ => Err(serde::de::Error::custom("Failed to deserialize SurrealId")),
-        }
-    }
-}
+// impl<'de> Deserialize<'de> for SurrealId {
+//     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+//     where
+//         D: Deserializer<'de>,
+//     {
+//         let val = Value::deserialize(deserializer)?;
+//         println!("{:#?}", val.bright_yellow());
+//         // let thing = Thing::from(obj);
+
+        
+//         let json: Result<Thing, serde_json::Error> = serde_json::from_value(val.into_json());
+//         Ok(SurrealId(json.unwrap()))
+//     }
+// }
 // pub trait SurrealIDFactory {
 //     fn create(tb: &str, id: &str) -> SurrealID {
 //         todo!("SurrealIDFactory::create()");
