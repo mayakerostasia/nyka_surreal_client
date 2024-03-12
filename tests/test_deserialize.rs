@@ -72,7 +72,7 @@ lazy_static! {
         build_object("test", "006367d3-1e51-47c5-8b56-43492cec95ee"),
         build_object("test", "⟨006367d3-1e51-47c5-8b56-43492cec95ee⟩"),
     ];
-    static ref TEST_ID_SIMPLE: [Thing;7] = [ 
+    static ref TEST_ID_SIMPLE: [Thing;10] = [ 
         simple("test", Id::Number(1)),
         simple("test", Id::Number(2)),
         simple("test", Id::String("two".into())),
@@ -80,6 +80,9 @@ lazy_static! {
         simple("test", Id::String("1".to_string())),
         simple("test", Id::String("2".to_string())),
         simple("test", Id::from("006367d3-1e51-47c5-8b56-43492cec95ee")),
+        simple("test", Id::from(vec!["006367d3-1e51-47c5-8b56-43492cec95ee", "1"])),
+        simple("test", Id::from("`006367d3-1e51-47c5-8b56-43492cec95ee`")),
+        simple("test", Id::from("⟨006367d3-1e51-47c5-8b56-43492cec95ee⟩")),
         // simple("test", "⟨006367d3-1e51-47c5-8b56-43492cec95ee⟩"),
     ];
 }
@@ -189,7 +192,7 @@ async fn test_from_storable() -> Result<(), serde_json::Error> {
 
         println!("Dummy: {:#?}", dum.bold());
 
-        let saved: Result<Vec<Dummy>, Error> = dum.save().await.await;
+        let saved: Result<Option<Dummy>, Error> = dum.save().await.await;
         println!("Saved: {:#?}", saved.green());
         let saved: Result<Option<Dummy>, Error> = dum.delete().await.await;
         println!("Deleted: {:#?}", saved.red());

@@ -49,7 +49,7 @@ pub mod prelude {
     };
 }
 
-pub async fn create_record<T>(record: Record<T>) -> Result<Vec<T>, Error>
+pub async fn create_record<T>(record: Record<T>) -> Result<Option<T>, Error>
 where
     T: DBThings
 {
@@ -58,16 +58,16 @@ where
 
     match data {
         Some(data) => {
-            let created: Vec<T> = DB.create(_id.tb.clone()).content(data).await?;
-            return Ok(created);
+            let created: Option<T> = DB.create((_id.tb.clone(), _id.id.clone())).content(data).await?;
+            Ok(created)
         }
         None => {
             // id create
             let created: Option<T> = DB.create(_id).await?;
-            return Ok(vec![created.unwrap()]);
+            Ok(created)
         }
         
-    };
+    }
 }
 
 pub async fn updata_record<'a, T>(

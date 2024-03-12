@@ -49,7 +49,7 @@ where
 
     async fn save(
         &self,
-    ) -> Pin<Box<dyn Future<Output = Result<Vec<T>, Error>>>> {
+    ) -> Pin<Box<dyn Future<Output = Result<Option<T>, Error>>>> {
         let _ = connect(&CFG).await.ok();
         let record = self.to_record();
         Box::pin(create_record(record))
