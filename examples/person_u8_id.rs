@@ -47,7 +47,6 @@ fn person_factory(table: &str, id: Id, name: &str, age: u8) -> Option<Person> {
 
 #[tokio::main]
 async fn main() -> Result<(), nico_surreal_client::Error> {
-    let conf = setup();
     // Record To Database
     let john = person_factory(TEST_TABLE, Id::from(1), "John", 32).unwrap();
     println!("Record John: {:?}", &john);
