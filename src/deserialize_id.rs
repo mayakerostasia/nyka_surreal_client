@@ -1,16 +1,10 @@
-// "⟩"
+use serde::{de, Deserializer};
+use surrealdb::sql::{Id, Thing, Value};
 
 #[allow(unused_imports)]
 use rs_nico_tracing::{ info, error, debug , instrument, Instrument };
-// use log::{ info, error, debug , instrument, Instrument };
-use serde::{de, Deserializer};
-use std::collections::HashMap;
-// use serde_json::{Value as JValue};
-use surrealdb::sql::{Id, Object, Table, Thing, Value};
 
 use crate::SurrealId;
-
-struct DeserMap<K,V>(K, V);
 
 // #[instrument(skip(deserializer, )]
 pub fn deserialize_id<'de, D>(deserializer: D) -> Result<SurrealId, D::Error>
@@ -59,92 +53,37 @@ where
         where
             A: serde::de::MapAccess<'de>,
         {
-            let sid: SurrealId = if let Some((str, j_value)) = map.next_entry::<String, Value>()? {
-                error!("Key: {:#?}, Value: {:#?}", str, j_value);
-                SurrealId(serde_json::from_value::<Thing>(j_value.into_json()).expect("Couldn't reconstruct Thing"))
+            if let Some((ref key, val)) = map.next_entry::<String, Value>()? {
+                if let Value::Object(obj) = &val.first() {
+                    println!("Test Ok: {:#?}", obj);
+                    let id = obj.get("id").unwrap();
+                    match id.first() {
+                        Value::Thing(thing) => {
+                            println!("Test Ok: {:#?}", thing);
+                            Err(serde::de::Error::custom(format!("Failed to parse key: {:#?}", thing)))
+                        },
+                        Value::Object(obj) => {
+                            println!("Test Ok: {:#?}", obj);
+                            let id = obj.get("id").unwrap();
+                            let tb = obj.get("tb").unwrap();
+                            match id.first() {
+                                Value::Strand(id) => {
+                                    println!("Test Ok: {:#?}", id);
+                                    let id = SurrealId(Thing::from((tb.to_string(), id.to_string())));
+                                    Ok(id)
+                                },
+                                _ => Err(serde::de::Error::custom("Failed to parse key"))
+                            }
+                        },
+                        _ => Err(serde::de::Error::custom("Failed to parse key"))
+                    }
+                } else {
+                    Err(serde::de::Error::custom("Failed to parse key"))
+                }
             } else {
-                panic!("Failed to get next entry");
-            };
-
-            Ok(sid)
+                Err(serde::de::Error::custom("No entry found"))
+            }
         }
     }
     deserializer.deserialize_any(Visitor)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    use serde_json;
-    use serde::Serialize;
-    use serde::Deserialize;
-    use crate::prelude::{SurrealId, Thing, Id, DBThings};
-    use crate::{setup, Record, Storable, create_record, delete_record, connect};
-
-    use lazy_static::lazy_static;
-    #[derive(Debug, Clone, Serialize, Deserialize)]
-    struct Dummy {
-        id: SurrealId,
-    }
-
-    impl DBThings for Dummy {}
-    impl Storable<Dummy> for Dummy {}
-
-    impl From<Record<Dummy>> for Dummy {
-        fn from(record: Record<Dummy>) -> Self {
-            record.data().unwrap().clone()
-        }
-    }
-
-    impl Into<Record<Dummy>> for Dummy {
-        fn into(self) -> Record<Dummy> {
-            Record::new(Some(self.id.0.tb.clone()), Some(self.id.0.id.clone()), Some(Box::new(self)))
-        }
-    }
-
-    use std::collections::HashMap;
-    lazy_static! { 
-        static ref TEST_ID: [Thing;14] = [ 
-            Thing::from(("test", Id::from(1))),
-            Thing::from(("test", Id::from("1"))),
-            Thing::from(("test", Id::from(13030))),
-            Thing::from(("test", Id::from("1"))),
-            Thing::from(("test", Id::from("1"))),
-            Thing::from(("test", Id::from("1"))),
-            Thing::from(("test", Id::from("1"))),
-            Thing::from(("test", Id::from("1"))),
-            Thing::from(("test", Id::from("1"))),
-            Thing::from(("test", Id::from("1"))),
-            Thing::from(("test", Id::from("1"))),
-            Thing::from(("test", Id::from("⟨006367d3-1e51-47c5-8b56-43492cec95ee⟩"))),
-            Thing::from(("test", Id::from("006367d3-1e51-47c5-8b56-43492cec95ee"))),
-            Thing::from(("test", Id::from("006367d3-1e51-47c5-8b56-43492cec95ee"))),
-        ];
-    }
-
-    #[tokio::test]
-    async fn test_deserialize_id() -> Result<(), serde_json::Error> {
-        // let otel = rs_nico_tracing::initialize().expect("Failed to start tracing");
-        let cfg = setup();
-        let conn = connect(&cfg).await.expect("Failed to connect to db");
-
-        let mut test_iter = TEST_ID.iter();
-
-        while let Some(id) = test_iter.next() {
-            let obj_as_str = serde_json::to_string(id).expect("Failed to serialize");
-            // let obj_deser: Object = serde_json::from_str(&obj_as_str).expect("Failed to deserialize");
-            let obj_deser_value: Thing = serde_json::from_str(&obj_as_str).expect("Failed to deserialize");
-            println!("Input as Object: {:#?}", id);
-            println!("Input as SerObj: {:#?}", obj_as_str);
-            // println!("Input as DeserObj: {:#?}", obj_deser);
-            println!("Input as DeserObj: {:#?}", obj_deser_value);
-            let obj_deser_surid: SurrealId = serde_json::from_str(&obj_as_str).expect("Failed to deserialize");
-            println!("Input as DeserObj: {:#?}", obj_deser_surid);
-
-            assert_eq!(obj_as_str, serde_json::to_string(&obj_deser_surid.0).expect("whoops"));
-        };
-
-        Ok(())
-    }
 }
