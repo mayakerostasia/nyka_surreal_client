@@ -3282,7 +3282,7 @@ dependencies = [
 [[package]]
 name = "surrealdb"
 version = "1.4.0"
-source = "git+https://github.com/surrealdb/surrealdb.git#b62011bfec6da0c3d28c9b4a071becb15c089967"
+source = "git+https://github.com/surrealdb/surrealdb.git#2fe398f5b4d6a94b6c8dea8218b11792e35df2f2"
 dependencies = [
  "async-channel",
  "bincode",
@@ -3388,7 +3388,7 @@ dependencies = [
 [[package]]
 name = "surrealdb-core"
 version = "1.4.0"
-source = "git+https://github.com/surrealdb/surrealdb.git#b62011bfec6da0c3d28c9b4a071becb15c089967"
+source = "git+https://github.com/surrealdb/surrealdb.git#2fe398f5b4d6a94b6c8dea8218b11792e35df2f2"
 dependencies = [
  "addr",
  "any_ascii",

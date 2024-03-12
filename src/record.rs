@@ -3,7 +3,7 @@ use std::fmt::Debug;
 use serde::{Deserialize, Serialize};
 use surrealdb::sql::{Id, Thing};
 
-use crate::storable::DBThings;
+use crate::{storable::DBThings, Storable};
 use surrealdb::opt::RecordId;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -41,3 +41,27 @@ impl<T> Record<T> {
 }
 
 impl<T: DBThings> DBThings for Record<T> {}
+
+
+impl<T> Storable<Record<T>> for Record<T>
+where T: DBThings + Storable<T> + 'static
+{
+    fn thing(&self) -> Thing {
+        Thing {
+            tb: self.table(),
+            id: self.id(),
+        }
+    }
+
+    fn id(&self) -> Option<Id> {
+        Some(self.id.id.clone())
+    }
+
+    fn table(&self) -> Option<String> {
+        Some(self.id.tb.clone())
+    }
+
+    fn data(&self) -> Record<T> {
+        unimplemented!()
+    }
+}
