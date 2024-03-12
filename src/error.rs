@@ -16,6 +16,9 @@ pub enum Error {
         // msg: surrealdb::Error
     },
 
+    #[error("Deserialization Error: {0}")]
+    DeserializationError(String),
+
     #[error("Surreal Error: {0}")]
     DbError(#[from] surrealdb::Error),
 

@@ -7,7 +7,7 @@ mod record;
 mod storable;
 
 pub use config::{setup, DbConfig};
-pub use deserialize_id::deserialize_id;
+// pub use deserialize_id::deserialize_id;
 pub use error::Error;
 pub use ident::SurrealId;
 use once_cell::sync::Lazy;
@@ -32,7 +32,7 @@ pub mod prelude {
         create_record,
         // update_record,
         delete_record,
-        deserialize_id,
+        // deserialize_id,
         get_record,
         query,
         DBThings,
@@ -51,25 +51,23 @@ pub mod prelude {
 
 pub async fn create_record<T>(record: Record<T>) -> Result<Vec<T>, Error>
 where
-    T: DBThings + From<Record<T>>,
+    T: DBThings
 {
-    let _id = record.id();
-    let table = record.table();
-
-    if table == "_" {
-        return Err(Error::TableNameUnset);
-    }
+    let _id = &record.id;
     let data = record.data();
 
-    if data.is_none() {
-        return Err(Error::NoDataStored("No data stored in record".to_string()));
-    }
-
-    let created: Vec<T> = DB
-        .create(table)
-        .content(data.unwrap())
-        .await?;
-    Ok(created)
+    match data {
+        Some(data) => {
+            let created: Vec<T> = DB.create(_id.tb.clone()).content(data).await?;
+            return Ok(created);
+        }
+        None => {
+            // id create
+            let created: Option<T> = DB.create(_id).await?;
+            return Ok(vec![created.unwrap()]);
+        }
+        
+    };
 }
 
 pub async fn updata_record<'a, T>(
@@ -79,18 +77,12 @@ where
     T: DBThings,
 {
     let updated: Option<Record<T>>;
-
-    let _id = record.id();
-    let table = record.table();
-
-    if table == "_" {
-        return Err(Error::TableNameUnset);
-    }
+    let _id = &record.id;
 
     if let Some(data) = record.data() {
-        updated = DB.update((table, _id)).content(data).await?;
+        updated = DB.update(_id).content(data).await?;
     } else {
-        updated = DB.update((table, _id)).await?;
+        updated = DB.update(_id).await?;
     }
     Ok(updated)
 }
@@ -100,25 +92,15 @@ pub async fn get_record<T>(record: Record<T>) -> Result<Option<Record<T>>, Error
 where
     T: DBThings,
 {
-    let _id = record.id();
-    let table = record.table();
+    let ret: Option<Record<T>>;
+    let _id = &record.id;
 
-    if table == "_" {
-        return Err(Error::TableNameUnset);
-    }
-
-    println!(
-        "Getting record: {:?}:{:?}",
-        &table,
-        &_id.to_raw().to_string()
-    );
-
-    DB.select((&table, _id.clone())) // Implement the IntoResource<T> trait for surrealdb::sql::Thing
+    DB.select(_id) // Implement the IntoResource<T> trait for surrealdb::sql::Thing
         .await
         .map_err(|_e| Error::NoRecordFound {
-            table: table.to_string(),
             id: _id.to_string(),
             id_raw: _id.to_raw(), // msg: e
+            table: record.table(),
         })
 }
 

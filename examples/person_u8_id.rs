@@ -16,24 +16,25 @@ struct Person {
 }
 impl DBThings for Person {}
 
-impl From<Record<Person>> for Person {
-    fn from(record: Record<Person>) -> Self {
-        let id = record.id();
-        println!("ID: {:?}", &id);
-        record.into_inner().unwrap()
+impl Storable<Person> for Person {
+    fn thing(&self) -> Thing {
+        Thing {
+            tb: self.table().unwrap(),
+            id: self.id().unwrap(),
+        } 
+    }
+    fn id(&self) -> Option<Id> {
+        Some(Id::Number(1))
+    }
+
+    fn table(&self) -> Option<String> {
+        Some(TEST_TABLE.to_string())
+    }
+
+    fn data(&self) -> Person {
+        self.clone()
     }
 }
-
-impl Into<Record<Person>> for Person {
-    fn into(self) -> Record<Person> {
-        Record::new(
-            Some(TEST_TABLE.to_string()), 
-            Some(Id::from(1)), 
-            Some(Box::new(self.clone())))
-    }
-}
-
-impl Storable<Person> for Person {}
 
 // API Call or Factory
 fn person_factory(table: &str, id: Id, name: &str, age: u8) -> Option<Person> {
@@ -52,9 +53,10 @@ async fn main() -> Result<(), nico_surreal_client::Error> {
     println!("Record John: {:?}", &john);
 
     // let _ = john.delete(&conf).await.await?;
-    let saved_john = john.save(&conf).await.await?;
-    let selected_john = john.select(&conf).await.await?;
-    let deleted_john = john.delete(&conf).await.await?;
+    let saved_john = john.save().await.await?;
+    let selected_john = john.select().await.await?;
+    // let updated_john = john.().await.await?;
+    let deleted_john = john.delete().await.await?;
 
     // Some Logging
     println!("Created -> Yes");
