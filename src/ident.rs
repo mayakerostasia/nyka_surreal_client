@@ -3,7 +3,7 @@ use surrealdb::{opt::Resource, sql::Thing};
 use serde::{Deserialize, Serialize};
 
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Clone)]
 pub struct SurrealId(pub Thing);
 
 impl Display for SurrealId {
