@@ -1,5 +1,5 @@
 use std::fmt::Display;
-use surrealdb::sql::Thing;
+use surrealdb::{opt::Resource, sql::Thing};
 use serde::{Deserialize, Serialize};
 
 
@@ -12,6 +12,22 @@ impl Display for SurrealId {
     }
 }
 
+impl<'de> Deserialize<'de> for SurrealId {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let src = Resource::deserialize(deserializer)?;
+        match src {
+            Resource::RecordId(id) => Ok(SurrealId(id)),
+            Resource::Object(obj) => {
+                let thing = Thing::deserialize(obj)?;
+                Ok(SurrealId(thing))
+            },
+            _ => Err(serde::de::Error::custom("Failed to deserialize SurrealId")),
+        }
+    }
+}
 // pub trait SurrealIDFactory {
 //     fn create(tb: &str, id: &str) -> SurrealID {
 //         todo!("SurrealIDFactory::create()");

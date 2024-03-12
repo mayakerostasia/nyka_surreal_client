@@ -15,7 +15,8 @@ pub struct Record<T> {
 
 impl<T> Record<T> {
     pub fn new(tb: Option<String>, id: Option<Id>, data: Option<Box<T>>) -> Self {
-        todo!("Record::new()");
+        let id = RecordId::new(tb, id);
+        Self { id, meta: None, data }
     }
     
     pub fn id(&self) -> Id {
