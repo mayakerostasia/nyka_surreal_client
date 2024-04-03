@@ -1,0 +1,107 @@
+name: "BB Rust Builder"
+description: "Builds Rust projects"
+inputs:
+    registry:
+        # type: "string"
+        default: "ghcr.io"
+        description: "The registry to push the image to"
+        required: false
+    rust_version:
+        # type: "string"
+        default: "1.76.0"
+        description: "The version of Rust to use"
+        required: false
+    gh_token:
+        # type: "string"
+        description: "The GitHub token to use for pushing the image"
+        required: true
+    ssh:
+        # type: "string"
+        description: "The SSH key to use for cloning the repository"
+        required: true
+    dockerfile:
+        # type: "string"
+        default: "Dockerfile"
+        description: "The path to the Dockerfile"
+        required: true
+outputs:
+    tags:
+        value: ${{ steps.meta.outputs.tags }}
+        description: "The tags for the Docker image"
+    labels:
+        value: ${{ steps.meta.outputs.labels }}
+        description: "The labels for the Docker image"
+    image_digest:
+        value: ${{ steps.build-and-push.outputs.digest }}
+        description: "The digest of the Docker image"
+  
+runs:
+    using: composite
+    steps:
+      - name: Install cosign
+        if: github.event_name != 'pull_request'
+        uses: sigstore/cosign-installer@v3.1.1 #v3.1.1
+        with:
+          cosign-release: 'v2.1.1'
+
+      # Set up BuildKit Docker container builder to be able to build
+      # multi-platform images and export cache
+      # https://github.com/docker/setup-buildx-action
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Login against a Docker registry except on PR
+      # https://github.com/docker/login-action
+      - name: Log into registry ${{ inputs.REGISTRY }}
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
+        with:
+          registry: ${{ inputs.registry }}
+          username: ${{ github.actor }}
+          password: ${{ inputs.gh_token }}
+
+      # Extract metadata (tags, labels) for Docker
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5.5.0
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          labels: |
+            org.bluebastion.image.title=${{ env.IMAGE_NAME }}
+            org.bluebastion.image.date=${{ github.event.created_at }}
+            org.bluebastion.image.version=${{ github.ref }}
+          tags: |
+            ${{ github.ref }}
+
+      # Build and push Docker image with Buildx (don't push on PR)
+      # https://github.com/docker/build-push-action
+      - name: Build and push Docker image
+        id: build-and-push
+        uses: docker/build-push-action@v5.1.0
+        with:
+          context: .
+          file: ${{ inputs.dockerfile }}
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          # cache-from: type=gha
+          # cache-to: type=gha,mode=max
+          github-token: ${{ inputs.gh_token }}
+          ssh: |
+            default=${{ env.SSH_AUTH_SOCK }}
+
+      # Sign the resulting Docker image digest except on PRs.
+      # This will only write to the public Rekor transparency log when the Docker
+      # repository is public to avoid leaking data.  If you would like to publish
+      # transparency data even for private images, pass --force to cosign below.
+      # https://github.com/sigstore/cosign
+      - name: Sign the published Docker image
+        shell: bash
+        if: ${{ github.event_name != 'pull_request' }}
+        env:
+          # https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#using-an-intermediate-environment-variable
+          TAGS: ${{ steps.meta.outputs.tags }}
+          DIGEST: ${{ steps.build-and-push.outputs.digest }}
+        # This step uses the identity token to provision an ephemeral certificate
+        # against the sigstore community Fulcio instance.
+        run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}

@@ -83,7 +83,7 @@
 -- SELECT
 --     *,
 --     <-belongsTo<-event[WHERE eventType = "IssueCreated"].id as created,
---     <-belongsTo<-event[WHERE eventType = "IssueUpdated"].id as updates,
+--  e  <-belongsTo<-event[WHERE eventType = "IssueUpdated"].id as updates,
 --     <-belongsTo<-event[WHERE eventType = "CommentCreated"].id as comments
 -- FROM 
 --     issue

@@ -17,7 +17,7 @@ pub struct DbService {
 impl Service for DbService
 {
     type Response = DbResponse<Value>;
-    type Error = BoxError;
+    type Error = Error;
     type Future = Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>> + Send>>;
 
     fn poll_ready(&mut self, cx: &mut std::task::Context<'_>) -> std::task::Poll<Result<(), Self::Error>> {

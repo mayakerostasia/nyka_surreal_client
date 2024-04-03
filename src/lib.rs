@@ -1,3 +1,4 @@
+mod live;
 mod config;
 mod creds;
 mod deserialize_id;
@@ -8,14 +9,19 @@ mod storable;
 
 pub use config::{setup, DbConfig};
 // pub use deserialize_id::deserialize_id;
+use futures_lite::StreamExt;
 pub use error::Error;
 pub use ident::SurrealId;
 use once_cell::sync::Lazy;
 pub use record::Record;
 pub use serde::{Deserialize, Serialize};
 pub use storable::{DBThings, Storable};
-use surrealdb::opt::auth::Root;
-use surrealdb::{engine::any::Any, opt::auth::Jwt, Response, Surreal};
+
+use surrealdb::{
+    sql::Thing,
+    engine::any::Any, 
+    opt::auth::{ Jwt, Root }, 
+    Response, Surreal};
 
 static DB: Lazy<Surreal<Any>> = Lazy::new(Surreal::init);
 
@@ -26,6 +32,10 @@ pub mod prelude {
     pub use surrealdb::sql::Thing;
     pub use surrealdb::sql::Value;
     pub use surrealdb::Error as SDBError;
+
+    // live_select
+    pub use super::live_select;
+    pub use super::live::subscribe;
 
     pub use super::{
         connect,
@@ -136,6 +146,21 @@ pub async fn connect<'a>(config: &'a config::DbConfig) -> Result<(), Error> {
 
     DB.use_ns(&config.ns).use_db(&config.db).await?;
     Ok(())
+}
+
+pub async fn live_select<'a, T>(table: &str, id: Option<Thing>) -> Result<surrealdb::method::Stream<'a, Any, Vec<T>>, Error>
+where
+    T: DBThings,
+{
+    match id {
+        Some(id) => {
+            unimplemented!()
+        }
+        None => {
+            let mut stream: surrealdb::method::Stream<'_, Any, Vec<T>> = DB.select(table).live().await?;
+            Ok(stream)
+        }
+    }
 }
 
 struct DBGuard {

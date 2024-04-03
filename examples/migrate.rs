@@ -20,7 +20,7 @@ async fn main() -> Result<(), Error> {
     // Select a specific namespace / database
     db.use_ns("nico").use_db("nico").await?;
 
-    let p = include_str!("./migrations.surql");
+    let p = include_str!("..\\surrealql\\migrations.surql");
     db.query(p).await?; // Import all migrations from a file
 
     Ok(())

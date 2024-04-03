@@ -1,5 +1,4 @@
 use nico_surreal_client::prelude::*;
-/// This is PROBLEMATIC !!!
 use nico_surreal_client::{setup, DbConfig};
 use surrealdb::sql::Id;
 

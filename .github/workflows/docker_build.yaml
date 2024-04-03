@@ -1,0 +1,67 @@
+# name: Docker
+
+# # This workflow uses actions that are not certified by GitHub.
+# # They are provided by a third-party and are governed by
+# # separate terms of service, privacy policy, and support
+# # documentation.
+
+# on:
+#   # schedule:
+#   #   - cron: '23 11 * * *'
+#   push:
+#     # branches: [ "master" ]
+#     tags: [ 'v*.*.0' ]
+#   # pull_request:
+#     # branches: [ "master", "prod" ]
+
+
+# env:
+#   # Use docker.io for Docker Hub if empty
+#   REGISTRY: ghcr.io
+#   # github.repository as <account>/<repo>
+#   IMAGE_NAME: ${{ github.repository }}
+
+# jobs:
+#   build:
+#     runs-on: ubuntu-latest
+#     permissions:
+#       contents: read
+#       packages: write
+#       # This is used to complete the identity challenge
+#       # with sigstore/fulcio when running outside of PRs.
+#       id-token: write
+#     strategy:
+#       matrix:
+#         include:
+#           - first: "docker/Dockerfile"
+#           # - second: "Dockerfile.runtime"
+#           # - third: "Dockerfile"
+        
+#     steps:
+#       - name: Check out the repository code into the VM
+#         uses: actions/checkout@v4
+#       - name: Set up SSH agent
+#         uses: webfactory/ssh-agent@v0.9.0
+#         with:
+#           ssh-private-key: ${{ secrets.RUNNER_10_2_4_50_SSH }}
+
+
+#       - name: Dump GitHub context
+#         env:
+#           GITHUB_CONTEXT: ${{ toJson(github) }}
+#         run: echo "$GITHUB_CONTEXT"
+
+#       - name: Build image
+#         uses: ./.github/actions
+#         with:
+#           dockerfile: ${{ matrix.first }}
+#           gh_token: ${{ secrets.GITHUB_TOKEN }}
+#           registry: ${{ env.REGISTRY }}
+#           ssh: ${{ secrets.RUNNER_10_2_4_50_SSH }}
+#         env:
+#           DOCKER_BUILDKIT: 1
+#           DOCKER_PROGRESS: plain
+#           secrets: inherit
+#           SSH_AUTH_SOCK: ${{ env.SSH_AUTH_SOCK }}
+
+
