@@ -15,8 +15,14 @@ pub struct Record<T> {
 
 impl<T> Record<T> {
     pub fn new(tb: Option<String>, id: Option<Id>, data: Option<Box<T>>) -> Self {
-        let id = RecordId::from((tb.expect("No table"), id.expect("No Id!")));
-        Self { id, meta: None, data }
+        let _id: Thing = Thing::from((tb.clone().expect("No table"), Id::rand()));
+
+        if let Some(id) = id {
+        } else { 
+            let _id = id;
+        };
+
+        Self { id: _id, meta: None, data }
     }
     
     pub fn id(&self) -> Id {
