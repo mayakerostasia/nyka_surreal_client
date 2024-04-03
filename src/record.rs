@@ -1,7 +1,6 @@
 use std::fmt::Debug;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 use surrealdb::sql::{Id, Thing};
 
 use crate::{storable::DBThings, Storable};
@@ -16,14 +15,7 @@ pub struct Record<T> {
 
 impl<T> Record<T> {
     pub fn new(tb: Option<String>, id: Option<Id>, data: Option<Box<T>>) -> Self {
-        let _id: Thing = Thing::from((tb.clone().expect("No table"), Id::rand()));
-
-        if let Some(id) = id {
-        } else { 
-            let _id = id;
-        };
-
-        Self { id: _id, meta: None, data }
+        Self { id: Thing::from((tb.clone().expect("No table"), id.expect("No Id!"))), meta: None, data }
     }
     
     pub fn id(&self) -> Id {
@@ -49,14 +41,12 @@ impl<T> Record<T> {
 
 impl<T: DBThings> DBThings for Record<T> {}
 
-impl DBThings for Record<Value> {}
-
 
 impl<T> Storable<Record<T>> for Record<T>
 where T: DBThings + Storable<T> + 'static
 {
     fn thing(&self) -> Thing {
-        Thing::from((self.id.tb.clone(), self.id.id.clone()))    
+        Thing::from((self.table(), self.id())) 
     }
 
     fn id(&self) -> Option<Id> {

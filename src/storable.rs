@@ -5,7 +5,6 @@ use async_trait::async_trait;
 use futures_lite::Future;
 use lazy_static::lazy_static;
 use serde::{de::DeserializeOwned, Serialize};
-use surrealdb::opt::IntoResource;
 
 use crate::prelude::*;
 // use crate::record::RecordIdData;
