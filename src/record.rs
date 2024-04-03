@@ -53,10 +53,7 @@ impl<T> Storable<Record<T>> for Record<T>
 where T: DBThings + Storable<T> + 'static
 {
     fn thing(&self) -> Thing {
-        Thing {
-            tb: self.table(),
-            id: self.id(),
-        }
+        Thing::from((self.id.tb.clone(), self.id.id.clone()))    
     }
 
     fn id(&self) -> Option<Id> {
