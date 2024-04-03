@@ -1,6 +1,7 @@
 use std::fmt::Debug;
 
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 use surrealdb::sql::{Id, Thing};
 
 use crate::{storable::DBThings, Storable};
@@ -47,6 +48,8 @@ impl<T> Record<T> {
 }
 
 impl<T: DBThings> DBThings for Record<T> {}
+
+impl DBThings for Record<Value> {}
 
 
 impl<T> Storable<Record<T>> for Record<T>

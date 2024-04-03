@@ -24,10 +24,7 @@ struct Dummy {
 impl DBThings for Dummy {}
 impl Storable<Dummy> for Dummy {
     fn thing(&self) -> Thing {
-        Thing {
-            tb: self.table().unwrap(),
-            id: self.id().unwrap(),
-        }
+        Thing::from((self.id.0.tb.clone(), self.id.0.id.clone()))
     }
 
     fn id(&self) -> Option<Id> {

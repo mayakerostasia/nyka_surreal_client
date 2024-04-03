@@ -1,3 +1,4 @@
+use color_eyre::owo_colors::OwoColorize;
 use nico_surreal_client::prelude::*;
 use nico_surreal_client::{setup, DbConfig};
 use surrealdb::sql::Id;
@@ -17,10 +18,7 @@ impl DBThings for Person {}
 
 impl Storable<Person> for Person {
     fn thing(&self) -> Thing {
-        Thing {
-            tb: self.table().unwrap(),
-            id: self.id().unwrap(),
-        } 
+        Thing::from((self.table().unwrap(), self.id().unwrap()))
     }
     fn id(&self) -> Option<Id> {
         Some(Id::Number(1))
