@@ -18,6 +18,15 @@ lazy_static!{
     static ref CFG: DbConfig = setup();
 }
 
+/// A Master trait to define an object that can be stored in the database.
+/// The object must implement the DBThings trait.
+/// The functions that are required to be implemented are:
+/// - id: Should return an Option<surrealdb::Id>
+///        we do recommend using `Id::from([your_id])` from the surrealdb crate. in your implementation
+///        in order to create a random Id we recommend using `Id::rand()` from the surrealdb crate.
+/// - table: Should return an Option<String>
+/// - thing: Should return a surrealdb::Thing with the table and id from the above two functions.
+/// - data: Should return the data that you want to store in the database.
 #[async_trait]
 pub trait Storable<T>
 where

@@ -9,7 +9,6 @@ mod storable;
 
 pub use config::{setup, DbConfig};
 // pub use deserialize_id::deserialize_id;
-use futures_lite::StreamExt;
 pub use error::Error;
 pub use ident::SurrealId;
 use once_cell::sync::Lazy;
@@ -59,6 +58,8 @@ pub mod prelude {
     };
 }
 
+/// Static function to create a record
+/// This function requires you to call the `connect` function before calling
 pub async fn create_record<T>(record: Record<T>) -> Result<Option<T>, Error>
 where
     T: DBThings
@@ -81,6 +82,8 @@ where
     }
 }
 
+/// Static function to update a record
+/// This function requires you to call the `connect` function before calling
 pub async fn updata_record<'a, T>(
     record: Record<T>,
 ) -> Result<Option<Record<T>>, Error>
@@ -98,6 +101,8 @@ where
     Ok(updated)
 }
 
+/// Static function to get a record
+/// This function requires you to call the `connect` function before calling
 pub async fn get_record<T>(record: Record<T>) -> Result<Option<Record<T>>, Error>
 // pub async fn get_record<T>(table: &str, id: Id) -> Result<Option<Record<T>>, Error>
 where
@@ -115,6 +120,8 @@ where
         })
 }
 
+/// Static function to delete a record
+/// This function requires you to call the `connect` function before calling
 pub async fn delete_record<T>(record: Record<T>) -> Result<Option<T>, Error>
 // pub async fn delete_record<T>(table: &str, id: Id) -> Result<Option<T>, Error>
 where
@@ -131,11 +138,17 @@ where
     Ok(DB.delete((table, id)).await?)
 }
 
+/// Static function to query the database
+/// This function takes in a SurrealQL query string
+/// e.g. `SELECT * FROM table;`
+/// This function requires you to call the `connect` function before calling
 pub async fn query(query: &str) -> Result<Response, Error> {
     let results: Response = DB.query(query).await?;
     Ok(results)
 }
 
+/// Static function to connect to the database
+/// This function is used automatically in the `Storable` trait
 pub async fn connect<'a>(config: &'a config::DbConfig) -> Result<(), Error> {
     DB.connect(&config.path).await?;
     let _result = DB
@@ -149,6 +162,9 @@ pub async fn connect<'a>(config: &'a config::DbConfig) -> Result<(), Error> {
     Ok(())
 }
 
+/// Static function to start a live select stream
+/// This function requires you to call the `connect` function before calling
+/// Unimplemented
 pub async fn live_select<'a, T>(table: &str, id: Option<Thing>) -> Result<surrealdb::method::Stream<'a, Any, Vec<T>>, Error>
 where
     T: DBThings,
@@ -158,12 +174,13 @@ where
             unimplemented!()
         }
         None => {
-            let mut stream: surrealdb::method::Stream<'_, Any, Vec<T>> = DB.select(table).live().await?;
+            let stream: surrealdb::method::Stream<'_, Any, Vec<T>> = DB.select(table).live().await?;
             Ok(stream)
         }
     }
 }
 
+/// Currently Unimplemented
 struct DBGuard {
     _token: Jwt,
 }
