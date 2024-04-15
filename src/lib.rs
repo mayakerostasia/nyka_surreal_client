@@ -6,24 +6,30 @@
 //! 
 //! ## Example
 //! ```rust
-//! // Definition
+//! // Define your object that you want to store in the database
+//! // We recommend avoiding fields called "id" and "table" in your struct
+//! // You can use serde::skip() to skip these fields in serialization
 //! #[derive(Debug, Deserialize, Serialize, Clone)]
 //! struct Person {
-//!     id: SurrealId,
 //!     name: String,
 //!     age: u8,
 //! }
+//!
 //! impl DBThings for Person {}
+//!
 //! impl Storable<Person> for Person {
 //!     fn thing(&self) -> Thing {
 //!         Thing::from((self.table().unwrap(), self.id().unwrap()))
 //!     }
+//!
 //!     fn id(&self) -> Option<Id> {
-//!         Some(Id::Number(1))
+//!         // We recommend using `Id::from([your_id])` 
+//!         // in your implementation
+//!         Some( Id::from(1) )
 //!     }
 //!     
 //!     fn table(&self) -> Option<String> {
-//!         Some(TEST_TABLE.to_string())
+//!         Some( "some_table".to_string() )
 //!     }
 //!     
 //!     fn data(&self) -> Person {
