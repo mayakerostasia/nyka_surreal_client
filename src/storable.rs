@@ -1,3 +1,4 @@
+
 use std::fmt::Debug;
 use std::pin::Pin;
 
@@ -27,6 +28,26 @@ lazy_static!{
 /// - table: Should return an Option<String>
 /// - thing: Should return a surrealdb::Thing with the table and id from the above two functions.
 /// - data: Should return the data that you want to store in the database.
+/// 
+/// Example:
+/// ```no_run
+/// impl Storable<Person> for Person {
+///     fn thing(&self) -> Thing {
+///         Thing::from((self.table().unwrap(), self.id().unwrap()))
+///     }
+///     fn id(&self) -> Option<Id> {
+///         Some(Id::Number(1))
+///     }
+///     
+///     fn table(&self) -> Option<String> {
+///         Some(TEST_TABLE.to_string())
+///     }
+///     
+///     fn data(&self) -> Person {
+///         self.clone()
+///     }
+/// }
+/// ```
 #[async_trait]
 pub trait Storable<T>
 where

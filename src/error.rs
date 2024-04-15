@@ -3,6 +3,7 @@ use thiserror::Error;
 
 // use crate::client::DBClient;
 
+/// Error type for the SurrealDB Client
 #[derive(Error, Debug)]
 pub enum Error {
     #[error("Please set the \n DB_PATH, \n DB_NS, DB_DB, \n DB_USER, and \n DB_SECRET \n environment variables")]

@@ -1,6 +1,5 @@
-use color_eyre::owo_colors::OwoColorize;
 use nico_surreal_client::prelude::*;
-use nico_surreal_client::{setup, DbConfig};
+use serde::{Deserialize, Serialize};
 use surrealdb::sql::Id;
 
 const TEST_TABLE: &str = "test_table";

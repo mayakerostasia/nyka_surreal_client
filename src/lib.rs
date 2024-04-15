@@ -1,3 +1,36 @@
+//! # SurrealDB Client for BlueBastion
+//! 
+//! This crate is a client for the SurrealDB database.
+//! If you use this crait to implement the [Storable] trait for your struct, 
+//!     you can store and retrieve your struct from the SurrealDB database.
+//! 
+//! ## Example
+//! ```rust
+//! // Definition
+//! #[derive(Debug, Deserialize, Serialize, Clone)]
+//! struct Person {
+//!     id: SurrealId,
+//!     name: String,
+//!     age: u8,
+//! }
+//! impl DBThings for Person {}
+//! impl Storable<Person> for Person {
+//!     fn thing(&self) -> Thing {
+//!         Thing::from((self.table().unwrap(), self.id().unwrap()))
+//!     }
+//!     fn id(&self) -> Option<Id> {
+//!         Some(Id::Number(1))
+//!     }
+//!     
+//!     fn table(&self) -> Option<String> {
+//!         Some(TEST_TABLE.to_string())
+//!     }
+//!     
+//!     fn data(&self) -> Person {
+//!         self.clone()
+//!     }
+//! }
+//! ```
 mod live;
 mod config;
 mod creds;
@@ -13,14 +46,14 @@ pub use error::Error;
 pub use ident::SurrealId;
 use once_cell::sync::Lazy;
 pub use record::Record;
-pub use serde::{Deserialize, Serialize};
 pub use storable::{DBThings, Storable};
 
 use surrealdb::{
     sql::Thing,
     engine::any::Any, 
     opt::auth::{ Jwt, Root }, 
-    Response, Surreal};
+    Response, Surreal
+};
 
 static DB: Lazy<Surreal<Any>> = Lazy::new(Surreal::init);
 
@@ -45,21 +78,18 @@ pub mod prelude {
         get_record,
         query,
         DBThings,
-        Deserialize,
         Error,
-        // HasSurrealIdentifier,
         Record,
-        Serialize,
         Storable,
-        // SurrealData,
         SurrealId,
-        // SurrealIDIdent,
-        // SurrealIDTable,
     };
 }
 
-/// Static function to create a record
-/// This function requires you to call the `connect` function before calling
+/// needs `connect` to be called first
+/// 
+/// 
+/// # Examples
+/// 
 pub async fn create_record<T>(record: Record<T>) -> Result<Option<T>, Error>
 where
     T: DBThings
