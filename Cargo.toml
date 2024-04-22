@@ -27,6 +27,7 @@ rs-nico-tracing = { git = "git+ssh://git@github.com/BlueBastion/DEV-rs-nico-trac
 tracing = "0.1.40"
 surreal-id = "0.2.2"
 lazy_static = "1.4.0"
+bb-config = { version = "0.1.0", git = "git+ssh://git@github.com/BlueBastion/DEV-BB-Config.git", features = ["surreal"]}
 
 # [dev-dependencies]
 # color-eyre = "0.6.2"

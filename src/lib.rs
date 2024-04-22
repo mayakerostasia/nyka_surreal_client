@@ -190,7 +190,7 @@ pub async fn connect<'a>(config: &'a config::DbConfig) -> Result<(), Error> {
     let _result = DB
         .signin(Root {
             username: &config.user,
-            password: &config.secret,
+            password: &config.pass,
         })
         .await?;
 
@@ -206,7 +206,7 @@ where
     T: DBThings,
 {
     match id {
-        Some(id) => {
+        Some(_) => {
             unimplemented!()
         }
         None => {

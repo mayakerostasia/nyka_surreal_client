@@ -1,4 +1,5 @@
-use std::env;
+use bb_config::{srql_config, SurrealCfg};
+// use std::env;
 
 #[derive(Debug, Clone)]
 pub struct DbConfig {
@@ -6,15 +7,16 @@ pub struct DbConfig {
     pub ns: String,
     pub db: String,
     pub user: String,
-    pub secret: String,
+    pub pass: String,
 }
 
 pub fn setup() -> DbConfig {
+    let cfg: SurrealCfg = srql_config().expect("Failed to setup surreal from ENV");
     DbConfig {
-        path: env::var("DB_PATH").expect("DB_PATH must be set"),
-        ns: env::var("DB_NS").expect("DB_NS ( a Namespace Name ) must be set"),
-        db: env::var("DB_DB").expect("DB_DB ( a Database Name ) must be set"),
-        user: env::var("DB_USER").expect("DB_USER must be set"),
-        secret: env::var("DB_SECRET").expect("DB_SECRET must be set"),
+        path: cfg.path,
+        ns: cfg.ns,
+        db: cfg.db,
+        user: cfg.user,
+        pass: cfg.pass,
     }
 }
