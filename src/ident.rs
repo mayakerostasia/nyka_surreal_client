@@ -1,8 +1,7 @@
 use std::fmt::Display;
-use color_eyre::owo_colors::OwoColorize;
-use surrealdb::{sql::Value, opt::Resource, sql::Thing, sql::Object};
-use serde::{Deserialize, Serialize, Deserializer};
 
+use serde::{Deserialize, Serialize};
+use surrealdb::sql::Thing;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct SurrealId(pub Thing);
@@ -22,7 +21,6 @@ impl Display for SurrealId {
 //         println!("{:#?}", val.bright_yellow());
 //         // let thing = Thing::from(obj);
 
-        
 //         let json: Result<Thing, serde_json::Error> = serde_json::from_value(val.into_json());
 //         Ok(SurrealId(json.unwrap()))
 //     }

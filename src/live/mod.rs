@@ -1,18 +1,18 @@
 pub mod subscribe {
+    use futures_lite::StreamExt;
+    use serde::{Deserialize, Serialize};
+    use surrealdb::sql::Value;
     use tokio::task::JoinHandle;
 
-    use surrealdb::sql::Value;
-    use futures_lite::StreamExt;
-    use serde::{Serialize, Deserialize};
-    use crate::{live_select, DBThings, SurrealId};
     use crate::prelude::Record;
+    use crate::{live_select, DBThings };
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
     struct SomeData {
         // pub id: SurrealId,
         pub data: Value,
     }
-    
+
     impl DBThings for SomeData {}
 
     pub async fn subscribe<'a>(table: &str) -> Result<JoinHandle<()>, surrealdb::Error> {
@@ -25,6 +25,5 @@ pub mod subscribe {
                 println!("Record: {:?}", record);
             }
         }))
-
     }
 }

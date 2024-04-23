@@ -1,9 +1,9 @@
 //! # SurrealDB Client for BlueBastion
-//! 
+//!
 //! This crate is a client for the SurrealDB database.
-//! If you use this crait to implement the [Storable] trait for your struct, 
+//! If you use this crait to implement the [Storable] trait for your struct,
 //!     you can store and retrieve your struct from the SurrealDB database.
-//! 
+//!
 //! ## Example
 //! ```rust
 //! // Define your object that you want to store in the database
@@ -23,7 +23,7 @@
 //!     }
 //!
 //!     fn id(&self) -> Option<Id> {
-//!         // We recommend using `Id::from([your_id])` 
+//!         // We recommend using `Id::from([your_id])`
 //!         // in your implementation
 //!         Some( Id::from(1) )
 //!     }
@@ -37,12 +37,12 @@
 //!     }
 //! }
 //! ```
-mod live;
 mod config;
 mod creds;
 mod deserialize_id;
 mod error;
 mod ident;
+mod live;
 mod record;
 mod storable;
 
@@ -53,12 +53,11 @@ pub use ident::SurrealId;
 use once_cell::sync::Lazy;
 pub use record::Record;
 pub use storable::{DBThings, Storable};
-
 use surrealdb::{
+    engine::any::Any,
+    opt::auth::Root,
     sql::Thing,
-    engine::any::Any, 
-    opt::auth::{ Jwt, Root }, 
-    Response, Surreal
+    Response, Surreal,
 };
 
 static DB: Lazy<Surreal<Any>> = Lazy::new(Surreal::init);
@@ -71,10 +70,9 @@ pub mod prelude {
     pub use surrealdb::sql::Value;
     pub use surrealdb::Error as SDBError;
 
+    pub use super::live::subscribe;
     // live_select
     pub use super::live_select;
-    pub use super::live::subscribe;
-
     pub use super::{
         connect,
         create_record,
@@ -92,13 +90,13 @@ pub mod prelude {
 }
 
 /// needs `connect` to be called first
-/// 
-/// 
+///
+///
 /// # Examples
-/// 
+///
 pub async fn create_record<T>(record: Record<T>) -> Result<Option<T>, Error>
 where
-    T: DBThings
+    T: DBThings,
 {
     let _id = &record.id;
     let _id = &record.id;
@@ -106,7 +104,10 @@ where
 
     match data {
         Some(data) => {
-            let created: Option<T> = DB.create((_id.tb.clone(), _id.id.clone())).content(data).await?;
+            let created: Option<T> = DB
+                .create((_id.tb.clone(), _id.id.clone()))
+                .content(data)
+                .await?;
             Ok(created)
         }
         None => {
@@ -114,15 +115,12 @@ where
             let created: Option<T> = DB.create(_id).await?;
             Ok(created)
         }
-        
     }
 }
 
 /// Static function to update a record
 /// This function requires you to call the `connect` function before calling
-pub async fn updata_record<'a, T>(
-    record: Record<T>,
-) -> Result<Option<Record<T>>, Error>
+pub async fn updata_record<'a, T>(record: Record<T>) -> Result<Option<Record<T>>, Error>
 where
     T: DBThings,
 {
@@ -144,7 +142,7 @@ pub async fn get_record<T>(record: Record<T>) -> Result<Option<Record<T>>, Error
 where
     T: DBThings,
 {
-    let ret: Option<Record<T>>;
+    let _ret: Option<Record<T>>;
     let _id = &record.id;
 
     DB.select(_id) // Implement the IntoResource<T> trait for surrealdb::sql::Thing
@@ -170,7 +168,7 @@ where
     }
 
     let id = record.id();
-    
+
     Ok(DB.delete((table, id)).await?)
 }
 
@@ -201,7 +199,10 @@ pub async fn connect<'a>(config: &'a config::DbConfig) -> Result<(), Error> {
 /// Static function to start a live select stream
 /// This function requires you to call the `connect` function before calling
 /// Unimplemented
-pub async fn live_select<'a, T>(table: &str, id: Option<Thing>) -> Result<surrealdb::method::Stream<'a, Any, Vec<T>>, Error>
+pub async fn live_select<'a, T>(
+    table: &str,
+    id: Option<Thing>,
+) -> Result<surrealdb::method::Stream<'a, Any, Vec<T>>, Error>
 where
     T: DBThings,
 {
@@ -210,25 +211,25 @@ where
             unimplemented!()
         }
         None => {
-            let stream: surrealdb::method::Stream<'_, Any, Vec<T>> = DB.select(table).live().await?;
+            let stream: surrealdb::method::Stream<'_, Any, Vec<T>> =
+                DB.select(table).live().await?;
             Ok(stream)
         }
     }
 }
 
-/// Currently Unimplemented
-struct DBGuard {
-    _token: Jwt,
-}
-impl DBGuard {
-    fn new(token: Jwt) -> Self {
-        Self { _token: token }
-    }
+// DBGuard Implementation
+// /// Currently Unimplemented
+// struct DBGuard(Jwt);
+// impl DBGuard {
+//     fn new(token: Jwt) -> Self {
+//         Self(token)
+//     }
 
-    fn token(self) -> Jwt {
-        self._token
-    }
-}
+//     fn token(self) -> Jwt {
+//         self.0
+//     }
+// }
 
 // impl Drop for DBGuard {
 //     fn drop(&mut self) {

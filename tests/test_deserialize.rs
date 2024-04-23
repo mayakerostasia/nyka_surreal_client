@@ -1,15 +1,12 @@
+#![allow(unused)]
 use color_eyre::owo_colors::OwoColorize;
-#[allow(unused_imports)]
-use nico_surreal_client::{
-    Error,
-    setup, Record, Storable, 
-    query, create_record, delete_record, connect, 
-    SurrealId, DBThings,
-    prelude::{ Value, Id, Thing }
-};
-
-use serde::{Serialize, Deserialize};
 use lazy_static::lazy_static;
+use nico_surreal_client::{
+    connect, create_record, delete_record,
+    prelude::{Id, Thing, Value},
+    query, setup, DBThings, Error, Record, Storable, SurrealId,
+};
+use serde::{Deserialize, Serialize};
 use surrealdb::sql::Object;
 // use surrealdb::{opt::IntoResource, sql::Object};
 // use surrealdb::opt::Resource;
@@ -18,7 +15,7 @@ struct SurIdent(Thing);
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct Dummy {
     id: SurrealId,
-    something: String
+    something: String,
 }
 
 impl DBThings for Dummy {}
@@ -34,9 +31,9 @@ impl Storable<Dummy> for Dummy {
     fn table(&self) -> Option<String> {
         let tb = self.id.0.tb.clone();
         if let "_" = tb.as_str() {
-            return None
+            return None;
         } else {
-            return Some(tb)
+            return Some(tb);
         }
     }
 
@@ -45,10 +42,9 @@ impl Storable<Dummy> for Dummy {
     }
 }
 
-
 use std::collections::BTreeMap;
-lazy_static! { 
-    static ref TEST_ID_VALUE: [Value;8] = [ 
+lazy_static! {
+    static ref TEST_ID_VALUE: [Value;8] = [
         wrap_value("test", "1"),
         wrap_value("test", 2),
         wrap_value("test", "two"),
@@ -59,7 +55,7 @@ lazy_static! {
         wrap_value("test", "⟨006367d3-1e51-47c5-8b56-43492cec95ee⟩"),
     ];
 
-    static ref TEST_ID_OBJ: [Object;8] = [ 
+    static ref TEST_ID_OBJ: [Object;8] = [
         build_object("test", "1"),
         build_object("test", 2),
         build_object("test", "two"),
@@ -69,7 +65,7 @@ lazy_static! {
         build_object("test", "006367d3-1e51-47c5-8b56-43492cec95ee"),
         build_object("test", "⟨006367d3-1e51-47c5-8b56-43492cec95ee⟩"),
     ];
-    static ref TEST_ID_SIMPLE: [Thing;10] = [ 
+    static ref TEST_ID_SIMPLE: [Thing;10] = [
         simple("test", Id::Number(1)),
         simple("test", Id::Number(2)),
         simple("test", Id::String("two".into())),
@@ -84,21 +80,31 @@ lazy_static! {
     ];
 }
 
-fn build_object<T>(tb: &str, id: T) -> Object where T: Into<Id> {
-        Object::from(
-            {
-                let mut map = BTreeMap::new();
-                map.insert("id".to_string(), Value::Thing(Thing::from((tb, Id::from(id.into())))));
-                map
-            }
-        )
+fn build_object<T>(tb: &str, id: T) -> Object
+where
+    T: Into<Id>,
+{
+    Object::from({
+        let mut map = BTreeMap::new();
+        map.insert(
+            "id".to_string(),
+            Value::Thing(Thing::from((tb, Id::from(id.into())))),
+        );
+        map
+    })
 }
 
-fn wrap_value<T>(tb: &str, id: T) -> Value where T: Into<Id> {
+fn wrap_value<T>(tb: &str, id: T) -> Value
+where
+    T: Into<Id>,
+{
     Value::Object(build_object::<T>(tb, id))
 }
 
-fn simple<T>(tb: &str, id: T) -> Thing where T: Into<Id> {
+fn simple<T>(tb: &str, id: T) -> Thing
+where
+    T: Into<Id>,
+{
     Thing::from((tb, Id::from(id.into())))
 }
 
@@ -133,7 +139,6 @@ fn simple<T>(tb: &str, id: T) -> Thing where T: Into<Id> {
 //     Ok(())
 // }
 
-
 #[tokio::test]
 async fn test_from_query() -> Result<(), serde_json::Error> {
     // let cfg = setup();
@@ -146,7 +151,6 @@ async fn test_from_query() -> Result<(), serde_json::Error> {
     //                     println!("Deserd in ID: {:#?}", id);
     //                     if let thing_value = id.first() {
     //                         println!("Deserd in ID ThingValue : {:#?}", thing_value);
-                            
 
     //                         // let thing = Thing::try_from(id.to_string());
     //                         // println!("Deserd in Thing: {:#?}", thing);
@@ -157,7 +161,7 @@ async fn test_from_query() -> Result<(), serde_json::Error> {
     //                     } else {
     //                         return Err(serde::de::Error::custom("Failed to get ID"))
     //                     }
-                        
+
     //     // let id = obj.0.get("id");
     //     // println!("Deserd in ID: {:#?}", id);
     // //     if let Some(id) = id {
@@ -173,10 +177,8 @@ async fn test_from_query() -> Result<(), serde_json::Error> {
     // }
     // println!("Deserd: {:#?}", deserd.first().is_object());
 
-
     Ok(())
 }
-
 
 #[tokio::test]
 async fn test_from_storable() -> Result<(), serde_json::Error> {
@@ -184,7 +186,7 @@ async fn test_from_storable() -> Result<(), serde_json::Error> {
     for thing in iter_ids {
         let dum = Dummy {
             id: SurrealId(thing.clone()),
-            something: "Some data".to_string()
+            something: "Some data".to_string(),
         };
 
         println!("Dummy: {:#?}", dum.bold());
@@ -193,8 +195,7 @@ async fn test_from_storable() -> Result<(), serde_json::Error> {
         println!("Saved: {:#?}", saved.green());
         let saved: Result<Option<Dummy>, Error> = dum.delete().await.await;
         println!("Deleted: {:#?}", saved.red());
-    };
+    }
 
     Ok(())
-
 }

@@ -1,10 +1,10 @@
 use std::fmt::Debug;
 
 use serde::{Deserialize, Serialize};
+use surrealdb::opt::RecordId;
 use surrealdb::sql::{Id, Thing};
 
 use crate::{storable::DBThings, Storable};
-use surrealdb::opt::RecordId;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Record<T> {
@@ -15,13 +15,17 @@ pub struct Record<T> {
 
 impl<T> Record<T> {
     pub fn new(tb: Option<String>, id: Option<Id>, data: Option<Box<T>>) -> Self {
-        Self { id: Thing::from((tb.clone().expect("No table"), id.expect("No Id!"))), meta: None, data }
+        Self {
+            id: Thing::from((tb.clone().expect("No table"), id.expect("No Id!"))),
+            meta: None,
+            data,
+        }
     }
-    
+
     pub fn id(&self) -> Id {
         self.id.id.clone()
     }
-    
+
     pub fn table(&self) -> String {
         self.id.tb.clone()
     }
@@ -41,12 +45,12 @@ impl<T> Record<T> {
 
 impl<T: DBThings> DBThings for Record<T> {}
 
-
 impl<T> Storable<Record<T>> for Record<T>
-where T: DBThings + Storable<T> + 'static
+where
+    T: DBThings + Storable<T> + 'static,
 {
     fn thing(&self) -> Thing {
-        Thing::from((self.table(), self.id())) 
+        Thing::from((self.table(), self.id()))
     }
 
     fn id(&self) -> Option<Id> {

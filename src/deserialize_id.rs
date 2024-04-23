@@ -41,7 +41,6 @@
 //         //                 if let thing_value = id.first() {
 //         //                     println!("Deserd in ID ThingValue : {:#?}", thing_value);
 
-
 //         //                     // let thing = Thing::try_from(id.to_string());
 //         //                     // println!("Deserd in Thing: {:#?}", thing);
 //         //                     // let id = SurrealId(thing.unwrap());
@@ -51,7 +50,7 @@
 //         //                 } else {
 //         //                     return Err(serde::de::Error::custom("Failed to get ID"))
 //         //                 }
-                        
+
 //         //             } else {
 //         //                 return Err(serde::de::Error::custom("Failed to get Object"))
 //         //             }
@@ -61,7 +60,7 @@
 //         //         }
 //         //     }
 //         // }
-        
+
 //         // fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
 //         // where
 //         //     E: serde::de::Error,

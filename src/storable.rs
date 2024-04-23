@@ -1,4 +1,3 @@
-
 use std::fmt::Debug;
 use std::pin::Pin;
 
@@ -15,7 +14,7 @@ use crate::Error;
 
 pub trait DBThings: Debug + Serialize + DeserializeOwned + Sized + Clone {}
 
-lazy_static!{
+lazy_static! {
     static ref CFG: DbConfig = setup();
 }
 
@@ -28,7 +27,7 @@ lazy_static!{
 /// - table: Should return an Option<String>
 /// - thing: Should return a surrealdb::Thing with the table and id from the above two functions.
 /// - data: Should return the data that you want to store in the database.
-/// 
+///
 /// Example:
 /// ```no_run
 /// impl Storable<Person> for Person {
@@ -53,9 +52,8 @@ pub trait Storable<T>
 where
     T: DBThings + 'static,
 {
-
     fn id(&self) -> Option<Id>;
-    fn table(&self) -> Option<String>; 
+    fn table(&self) -> Option<String>;
     fn thing(&self) -> Thing;
     // fn resource(&self) -> Resource;
     fn data(&self) -> T;
@@ -69,32 +67,26 @@ where
         let thing = self.thing();
         let data = self.data();
         // let meta = self.meta();
-        Record { 
+        Record {
             id: thing,
             meta: None,
             data: Some(Box::new(data)),
         }
     }
 
-    async fn save(
-        &self,
-    ) -> Pin<Box<dyn Future<Output = Result<Option<T>, Error>>>> {
+    async fn save(&self) -> Pin<Box<dyn Future<Output = Result<Option<T>, Error>>>> {
         let _ = connect(&CFG).await.ok();
         let record = self.to_record();
         Box::pin(create_record(record))
     }
 
-    async fn select(
-        &self,
-    ) -> Pin<Box<dyn Future<Output = Result<Option<Record<T>>, Error>>>> {
+    async fn select(&self) -> Pin<Box<dyn Future<Output = Result<Option<Record<T>>, Error>>>> {
         let _ = connect(&CFG).await.ok();
         let record = self.to_record();
         Box::pin(get_record(record))
     }
 
-    async fn delete(
-        &self,
-    ) -> Pin<Box<dyn Future<Output = Result<Option<T>, Error>>>> {
+    async fn delete(&self) -> Pin<Box<dyn Future<Output = Result<Option<T>, Error>>>> {
         let _ = connect(&CFG).await.ok();
         let record = self.to_record();
         Box::pin(delete_record(record))
