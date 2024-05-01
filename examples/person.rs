@@ -47,10 +47,13 @@ async fn main() -> Result<(), nico_surreal_client::Error> {
     let john = person_factory(TEST_TABLE, Id::from(1), "John", 32).unwrap();
     println!("Record John: {:?}", &john);
 
-    // let _ = john.delete(&conf).await.await?;
+    let _ = john.delete().await.await?;
     let saved_john = john.save().await.await?;
-    let selected_john = john.select().await.await?;
-    // let updated_john = john.().await.await?;
+    let mut selected_john = john.select().await.await?;
+    let john: Record<Person> = selected_john.take().expect("Couldn't select john");
+    let mut _john = john.data();
+    println!("{:#?}", _john);
+    let updated_john = john.update().await.await?;
     let deleted_john = john.delete().await.await?;
 
     // Some Logging
@@ -63,6 +66,10 @@ async fn main() -> Result<(), nico_surreal_client::Error> {
         "SelectedJohn : ({}:{}) -> {:?}",
         TEST_TABLE, TEST_PERSON, selected_john
     );
+    println!{
+        "UpdatedJohn : ({}:{}) -> {:?}",
+        TEST_TABLE, TEST_PERSON, updated_john
+    };
     println!(
         "DeletedJohn : ({}:{}) -> {:?}",
         TEST_TABLE, TEST_PERSON, deleted_john

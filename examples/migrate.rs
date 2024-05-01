@@ -1,7 +1,3 @@
-use std::fs;
-use std::io::Read;
-use std::path::Path;
-
 use nico_surreal_client::Error;
 use surrealdb::engine::any::connect;
 use surrealdb::opt::auth::Root;

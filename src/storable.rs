@@ -86,6 +86,12 @@ where
         Box::pin(get_record(record))
     }
 
+    async fn update(&self) -> Pin<Box<dyn Future<Output = Result<Option<Record<T>>, Error>>>> {
+        let _ = connect(&CFG).await.ok();
+        let record =  self.to_record();
+        Box::pin(update_record(record))
+    }
+
     async fn delete(&self) -> Pin<Box<dyn Future<Output = Result<Option<T>, Error>>>> {
         let _ = connect(&CFG).await.ok();
         let record = self.to_record();

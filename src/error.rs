@@ -16,6 +16,12 @@ pub enum Error {
         id_raw: String,
         // msg: surrealdb::Error
     },
+    #[error("DB Update record Failed: \n Table: {table:#?} \n ID: {id:#?} \n")]
+    UpdateFailed {
+        table: String,
+        id: String,
+        id_raw: String,
+    },
 
     #[error("Deserialization Error: {0}")]
     DeserializationError(String),

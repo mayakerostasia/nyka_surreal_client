@@ -47,15 +47,15 @@ mod record;
 mod storable;
 
 pub use config::{setup, DbConfig};
-// pub use deserialize_id::deserialize_id;
 pub use error::Error;
 pub use ident::SurrealId;
 use once_cell::sync::Lazy;
 pub use record::Record;
 pub use storable::{DBThings, Storable};
+
 use surrealdb::{
     engine::any::Any,
-    opt::auth::Root,
+    opt::{auth::Root, PatchOp},
     sql::Thing,
     Response, Surreal,
 };
@@ -76,8 +76,8 @@ pub mod prelude {
     pub use super::{
         connect,
         create_record,
-        // update_record,
         delete_record,
+        update_record,
         // deserialize_id,
         get_record,
         query,
@@ -120,7 +120,7 @@ where
 
 /// Static function to update a record
 /// This function requires you to call the `connect` function before calling
-pub async fn updata_record<'a, T>(record: Record<T>) -> Result<Option<Record<T>>, Error>
+pub async fn update_record<'a, T>(record: Record<T>) -> Result<Option<Record<T>>, Error>
 where
     T: DBThings,
 {
@@ -172,6 +172,28 @@ where
     Ok(DB.delete((table, id)).await?)
 }
 
+/// Static function to update a record
+/// This function is used automatically in the `Storable` trait
+pub async fn patch_record<T>(record: Record<T>, patch: PatchOp) -> Result<Option<T>, Error> 
+where T: DBThings 
+{
+    let table = record.table();
+    if table == "_" {
+        return Err(Error::TableNameUnset);
+    }
+
+    let id = record.id();
+
+    let ret = DB.update((table.clone(), id.clone())).patch(patch).await
+        .map_err(|_e| Error::UpdateFailed {
+            id: id.to_string(),
+            id_raw: id.to_raw(),
+            table,
+        })?;
+
+    Ok(ret)
+}
+
 /// Static function to query the database
 /// This function takes in a SurrealQL query string
 /// e.g. `SELECT * FROM table;`
@@ -180,6 +202,7 @@ pub async fn query(query: &str) -> Result<Response, Error> {
     let results: Response = DB.query(query).await?;
     Ok(results)
 }
+
 
 /// Static function to connect to the database
 /// This function is used automatically in the `Storable` trait

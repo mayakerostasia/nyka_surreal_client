@@ -62,6 +62,6 @@ where
     }
 
     fn data(&self) -> Record<T> {
-        unimplemented!()
+        Record::new(Some(self.table()), Some(self.id()), self.data.clone())
     }
 }
