@@ -13,6 +13,7 @@ struct Person {
     name: String,
     age: u8,
 }
+
 impl DBThings for Person {}
 
 impl Storable<Person> for Person {
