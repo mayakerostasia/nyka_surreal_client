@@ -99,7 +99,6 @@ where
     T: DBThings,
 {
     let _id = &record.id;
-    let _id = &record.id;
     let data = record.data();
 
     match data {

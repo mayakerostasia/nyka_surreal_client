@@ -19,7 +19,6 @@ serde_json = "1.0.113"
 serde_with = "3.6.1"
 thiserror = "1.0.57"
 tokio = { version = "1.36.0", features = ["macros", "rt-multi-thread"] }
-# rs-nico-tracing = { git = "git+ssh://git@github.com/BlueBastion/DEV-rs-nico-tracing.git", version = "0.2.0" }
 tracing = "0.1.40"
 lazy_static = "1.4.0"
 surrealdb = "1.4.2"
